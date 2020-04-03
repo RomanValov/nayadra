@@ -39,8 +39,8 @@ def vsync(value=None):
         import OpenGL.platform as gl_platform
         import ctypes
 
-        get_vsync = gl_platform.createBaseFunction('wglGetSwapIntervalEXT', platform.GL, ctypes.c_int, [], '', [], 'WGL_EXT_swap_control')
-        set_vsync = gl_platform.createBaseFunction('wglSwapIntervalEXT', platform.GL, ctypes.c_long, [ctypes.c_int], '', ['interval'], 'WGL_EXT_swap_control')
+        get_vsync = gl_platform.createBaseFunction('wglGetSwapIntervalEXT', gl_platform.PLATFORM.WGL, ctypes.c_int, [], '', [], 'WGL_EXT_swap_control')
+        set_vsync = gl_platform.createBaseFunction('wglSwapIntervalEXT', gl_platform.PLATFORM.WGL, ctypes.c_long, [ctypes.c_int], '', ['interval'], 'WGL_EXT_swap_control')
 
         if value is None:
             value = not get_vsync()
@@ -51,8 +51,8 @@ def vsync(value=None):
         import OpenGL.platform as gl_platform
         import ctypes
 
-        get_vsync = gl_platform.createBaseFunction('glXGetSwapIntervalMESA', platform.GL, ctypes.c_int, [], '', [], 'GLX_MESA_swap_control')
-        set_vsync = gl_platform.createBaseFunction('glXSwapIntervalMESA', platform.GL, ctypes.c_int, [ctypes.c_int], '', ['interval'], 'GLX_MESA_swap_control')
+        get_vsync = gl_platform.createBaseFunction('glXGetSwapIntervalMESA', gl_platform.PLATFORM.GLX, ctypes.c_int, [], '', [], 'GLX_MESA_swap_control')
+        set_vsync = gl_platform.createBaseFunction('glXSwapIntervalMESA', gl_platform.PLATFORM.GLX, ctypes.c_int, [ctypes.c_int], '', ['interval'], 'GLX_MESA_swap_control')
 
         if value is None:
             value = not get_vsync()
