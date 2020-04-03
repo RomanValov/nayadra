@@ -7,6 +7,8 @@ RUNFOR = 0
 
 ZOOMTO = 0
 
+CURSOR = 64
+
 DATA = 'data'
 
 SWITCH = 0

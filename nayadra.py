@@ -31,7 +31,7 @@ def main():
     board.zoomto(config.ZOOMTO)
 
     engine = control.Control((config.XTSZ, config.YTSZ), makepath(config.DATA, True))
-    cursor = graphic.UICursor(board, 2)
+    cursor = graphic.UICursor(board, config.CURSOR)
 
     # shell functions
     func = {}
