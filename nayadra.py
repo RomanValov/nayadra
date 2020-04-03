@@ -63,14 +63,14 @@ def main():
     countr = 0
 
     # component keys
-    SKIPKEYS = [ pygame.K_ESCAPE, pygame.K_MENU, pygame.K_RETURN ]
+    SKIPPED_KEYS = [ pygame.K_ESCAPE, pygame.K_MENU, pygame.K_RETURN ]
 
-    KOSHERKEYS = []
-    KOSHERKEYS += [ pygame.K_LEFTBRACKET, pygame.K_RIGHTBRACKET, pygame.K_SEMICOLON, pygame.K_QUOTE ]
-    KOSHERKEYS += [ pygame.K_COMMA, pygame.K_PERIOD, pygame.K_BACKSPACE, pygame.K_SYSREQ, pygame.K_SCROLLOCK ]
-    KOSHERKEYS += [ pygame.K_SPACE, pygame.K_TAB, pygame.K_BACKQUOTE, pygame.K_BACKSLASH, pygame.K_EQUALS, pygame.K_MINUS ]
-    KOSHERKEYS += [ pygame.K_0, pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_KP_MINUS ]
-    KOSHERKEYS += [ pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8, pygame.K_9, pygame.K_KP_PLUS ]
+    HANDLED_KEYS = []
+    HANDLED_KEYS += [ pygame.K_LEFTBRACKET, pygame.K_RIGHTBRACKET, pygame.K_SEMICOLON, pygame.K_QUOTE ]
+    HANDLED_KEYS += [ pygame.K_COMMA, pygame.K_PERIOD, pygame.K_BACKSPACE, pygame.K_SYSREQ, pygame.K_SCROLLOCK ]
+    HANDLED_KEYS += [ pygame.K_SPACE, pygame.K_TAB, pygame.K_BACKQUOTE, pygame.K_BACKSLASH, pygame.K_EQUALS, pygame.K_MINUS ]
+    HANDLED_KEYS += [ pygame.K_0, pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_KP_MINUS ]
+    HANDLED_KEYS += [ pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8, pygame.K_9, pygame.K_KP_PLUS ]
 
     wx, wy = 0.0, 0.0
 
@@ -99,7 +99,7 @@ def main():
                 console.enter(event.key, '')
             elif event.type == pygame.KEYUP and console.shown:
                 pass
-            elif event.type == pygame.KEYDOWN and console.shown and event.key not in SKIPKEYS:
+            elif event.type == pygame.KEYDOWN and console.shown and event.key not in SKIPPED_KEYS:
                 console.enter(event.key, event.unicode)
 
             # timer events
@@ -125,7 +125,7 @@ def main():
                 board.events[event.key]()
             elif event.type == pygame.KEYUP and event.key in status.events.keys():
                 status.events[event.key]()
-            elif event.type == pygame.KEYUP and event.key in KOSHERKEYS:
+            elif event.type == pygame.KEYUP and event.key in HANDLED_KEYS:
                 engine.sendkey(event.key)
 
             # repeatable events
