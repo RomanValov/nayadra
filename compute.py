@@ -53,26 +53,26 @@ def create_gl_context():
 
     return ctx
 
-class Behavior(object):
+class Recipe(object):
     def __init__(self, ntypes, nclass):
         self.ntypes = ntypes
         self.nclass = nclass
         self.ruleid = 0
-        self.buffer = self.dump_recipe(0x00, 0, [], {}) * self.ntypes * self.nclass
+        self.buffer = self.dump(0x00, 0, [], {}) * self.ntypes * self.nclass
         self.make_conway()
 
-    def tell_engine(self):
+    def name(self):
         return ENGINE
 
-    def load_recipe(self, filename):
+    def load(self, filename):
         with open(filename, 'r+b') as f:
             self.buffer = f.read(len(self.buffer))
 
-    def save_recipe(self, filename):
+    def save(self, filename):
         with open(filename, 'w+b') as f:
             f.write(self.buffer)
 
-    def dump_recipe(self, rarity, forced, around, effect):
+    def dump(self, rarity, forced, around, effect):
         use_forced = forced & 0x000F
         use_rarity = rarity & 0x00FF
         use_around = 0
@@ -82,7 +82,10 @@ class Behavior(object):
 
         return struct.pack('HBB', use_around, use_rarity, use_forced) + array.array('B', use_effect).tostring()
 
-    def draw_recipe(self, recipe):
+    def data(self):
+        return self.buffer
+
+    def draw(self, recipe):
         use_around, use_rarity, use_forced = struct.unpack('HBB', recipe[:4])
         use_effect = array.array('B', recipe[4:])
 
@@ -116,7 +119,7 @@ class Behavior(object):
         for n in xrange(self.ntypes * 2, self.ntypes * 3):
             recipe[n] = (0x00, 0, [], {0:6, 1:6, 2:6, 3:6, 4:6, 5:6, 6:6, 7:6, 8:6})
 
-        self.buffer = ''.join([ self.dump_recipe(*r) for r in recipe ])
+        self.buffer = ''.join([ self.dump(*r) for r in recipe ])
 
     def make_random(self):
         self.ruleid += 1
@@ -126,7 +129,7 @@ class Behavior(object):
         nuance = range(llimit, llimit + nrange)
 
         for n in xrange(self.ntypes * self.nclass):
-            recipe[n] = self.draw_recipe(urandom(16))
+            recipe[n] = self.draw(urandom(16))
             posite = nuance[recipe[n][1] % len(nuance)]
             negate = 0
             rarity = (recipe[n][0] & 0x00F0) and (recipe[n][0] & 0x000F) or 0
@@ -142,14 +145,14 @@ class Behavior(object):
         try: recipe[0][2].remove(0)
         except: pass
 
-        self.buffer = ''.join([ self.dump_recipe(*r) for r in recipe ])
+        self.buffer = ''.join([ self.dump(*r) for r in recipe ])
 
-_KOSHER_RESET = 1
-_KOSHER_PAUSE = 2
-_KOSHER_OSHOT = 3
-_KOSHER_DRAWS = 4
-_KOSHER_MOVED = 5
-_KOSHER_TOTAL = 10
+_ENGINE_RESET = 1
+_ENGINE_PAUSE = 2
+_ENGINE_OSHOT = 3
+_ENGINE_DRAWS = 4
+_ENGINE_MOVED = 5
+_ENGINE_TOTAL = 10
 
 class ComputeUnit:
     def __init__(self, (xtsz, ytsz), datapath, shared, isgl=True):
@@ -168,9 +171,9 @@ class ComputeUnit:
         self.chroma = koshertr.ChromaTR(nitems=0x100)
         self.scheme = cl.Buffer(self.ctx, mf.READ_ONLY, size=self.chroma.create(0, 0x10))
 
-        self.behave = Behavior(0x10, 0x04)
-        self.script = cl.Buffer(self.ctx, mf.READ_ONLY, size=len(self.behave.buffer))
-        cl.enqueue_write_buffer(self.q, self.script, self.behave.buffer).wait()
+        self.recipe = Recipe(0x10, 0x04)
+        self.script = cl.Buffer(self.ctx, mf.READ_ONLY, size=len(self.recipe.data()))
+        cl.enqueue_write_buffer(self.q, self.script, self.recipe.data()).wait()
 
         for n in xrange(0x10):
             self.chroma.switch(0, n).change(0, design='gradient', indice=[2*n, 2*n+1])
@@ -188,7 +191,7 @@ class ComputeUnit:
         self.sorder = 0
         self.sparse = 0
 
-        self.cvars = [ False for x in xrange(_KOSHER_TOTAL) ]
+        self.cvars = [ False for x in xrange(_ENGINE_TOTAL) ]
 
         self.xtsz = xtsz
         self.ytsz = ytsz
@@ -215,18 +218,18 @@ class ComputeUnit:
         self.program = cl.Program(self.ctx, source).build()
 
     def shifted(self):
-        self.cvars[_KOSHER_MOVED] = not self.cvars[_KOSHER_MOVED]
+        self.cvars[_ENGINE_MOVED] = not self.cvars[_ENGINE_MOVED]
 
     def command(self, key):
         if not key: pass
 
         # marker
         elif key == pygame.K_BACKQUOTE:
-            self.cvars[_KOSHER_DRAWS] = not self.cvars[_KOSHER_DRAWS]
+            self.cvars[_ENGINE_DRAWS] = not self.cvars[_ENGINE_DRAWS]
         elif key == pygame.K_1 or key == pygame.K_2 or key == pygame.K_3:
             self.vary = key - pygame.K_0
         elif key == pygame.K_BACKSPACE:
-            self.cvars[_KOSHER_RESET] = True
+            self.cvars[_ENGINE_RESET] = True
 
         elif key == pygame.K_LEFTBRACKET:
             if self.sparse > 0x00: self.sparse -= 0x11
@@ -239,16 +242,18 @@ class ComputeUnit:
             self.vary = (self.vary + 1) % self.vmax
 
         elif key == pygame.K_SEMICOLON:
-            rfiles = os.listdir(self.data)
-            self.rindex = (self.rindex + 1) % len(rfiles)
-            self.behave.load_recipe(os.path.join(self.data, rfiles[self.rindex]))
-            cl.enqueue_write_buffer(self.q, self.script, self.behave.buffer).wait()
+            _files = os.listdir(self.data)
+            if _files:
+                self.rindex = (self.rindex + 1) % len(_files)
+                self.recipe.load(os.path.join(self.data, _files[self.rindex]))
+                cl.enqueue_write_buffer(self.q, self.script, self.recipe.data()).wait()
 
         elif key == pygame.K_QUOTE:
-            rfiles = os.listdir(self.data)
-            self.rindex = (self.rindex - 1) % len(rfiles)
-            self.behave.load_recipe(os.path.join(self.data, rfiles[self.rindex]))
-            cl.enqueue_write_buffer(self.q, self.script, self.behave.buffer).wait()
+            _files = os.listdir(self.data)
+            if _files:
+                self.rindex = (self.rindex - 1) % len(_files)
+                self.recipe.load(os.path.join(self.data, rfiles[self.rindex]))
+                cl.enqueue_write_buffer(self.q, self.script, self.recipe.data()).wait()
 
         elif key == pygame.K_COMMA:
             self.vary = (self.vary - 1) % self.vmax
@@ -257,29 +262,29 @@ class ComputeUnit:
             self.vary = (self.vary + 1) % self.vmax
 
         elif key == pygame.K_TAB:
-            self.cvars[_KOSHER_OSHOT] = True
+            self.cvars[_ENGINE_OSHOT] = True
         elif key == pygame.K_SCROLLOCK:
-            self.cvars[_KOSHER_PAUSE] = not self.cvars[_KOSHER_PAUSE]
+            self.cvars[_ENGINE_PAUSE] = not self.cvars[_ENGINE_PAUSE]
 
         elif key == pygame.K_SPACE:
-            self.behave.make_random()
-            cl.enqueue_write_buffer(self.q, self.script, self.behave.buffer).wait()
-            #self.cvars[_KOSHER_RESET] = True
-            self.cvars[_KOSHER_PAUSE] = False
+            self.recipe.make_random()
+            cl.enqueue_write_buffer(self.q, self.script, self.recipe.data()).wait()
+            #self.cvars[_ENGINE_RESET] = True
+            self.cvars[_ENGINE_PAUSE] = False
 
         elif key == pygame.K_QUESTION:
             self.blnk = not self.blnk
 
         elif key == pygame.K_BACKSPACE:
-            self.behave.make_conway()
-            cl.enqueue_write_buffer(self.q, self.script, self.behave.buffer).wait()
-            self.cvars[_KOSHER_RESET] = True
-            self.cvars[_KOSHER_PAUSE] = False
+            self.recipe.make_conway()
+            cl.enqueue_write_buffer(self.q, self.script, self.recipe.data()).wait()
+            self.cvars[_ENGINE_RESET] = True
+            self.cvars[_ENGINE_PAUSE] = False
 
         elif key == pygame.K_SYSREQ:
-            self.behave.save_recipe(os.path.join(self.data, 'surround.%08X.bin' % int(time.time())))
-            cl.enqueue_write_buffer(self.q, self.script, self.behave.buffer).wait()
-            self.cvars[_KOSHER_PAUSE] = False
+            self.recipe.save(os.path.join(self.data, 'surround.%08X.bin' % int(time.time())))
+            cl.enqueue_write_buffer(self.q, self.script, self.recipe.data()).wait()
+            self.cvars[_ENGINE_PAUSE] = False
 
         elif key == pygame.K_KP_PLUS:
             if self.sorder < 7:
@@ -292,17 +297,17 @@ class ComputeUnit:
                 self.smooth >>= 1
 
     def vengine(self):
-        return self.behave.tell_engine()
+        return self.recipe.name()
 
     def inspect(self):
-        if self.cvars[_KOSHER_RESET]: self.cvars[_KOSHER_RESET] = False
-        elif not self.cvars[_KOSHER_PAUSE] or self.cvars[_KOSHER_OSHOT]:
-            if self.cvars[_KOSHER_OSHOT]:
-                self.cvars[_KOSHER_OSHOT] = False
-                self.cvars[_KOSHER_PAUSE] = True
+        if self.cvars[_ENGINE_RESET]: self.cvars[_ENGINE_RESET] = False
+        elif not self.cvars[_ENGINE_PAUSE] or self.cvars[_ENGINE_OSHOT]:
+            if self.cvars[_ENGINE_OSHOT]:
+                self.cvars[_ENGINE_OSHOT] = False
+                self.cvars[_ENGINE_PAUSE] = True
 
-        if self.cvars[_KOSHER_MOVED]:
-            self.cvars[_KOSHER_MOVED] = False
+        if self.cvars[_ENGINE_MOVED]:
+            self.cvars[_ENGINE_MOVED] = False
 
         self.state.update(trace=self.tsaved[0],ngenr=self.genr,dense=self.sparse)
 
@@ -310,35 +315,35 @@ class ComputeUnit:
 
     def preiter(self):
         self.state.update(
-                          draws=self.cvars[_KOSHER_DRAWS],
-                          moved=self.cvars[_KOSHER_MOVED],
+                          draws=self.cvars[_ENGINE_DRAWS],
+                          moved=self.cvars[_ENGINE_MOVED],
                           marks=self.vary,
-                          pause=self.cvars[_KOSHER_PAUSE],
+                          pause=self.cvars[_ENGINE_PAUSE],
                          )
 
     def iterate(self, tx, ty, radius):
         cl.enqueue_acquire_gl_objects(self.q, [ self.output ]).wait()
 
         # impact params
-        step = [ 0x00, 0xFF ][not self.cvars[_KOSHER_PAUSE] or self.cvars[_KOSHER_OSHOT]]
+        step = [ 0x00, 0xFF ][not self.cvars[_ENGINE_PAUSE] or self.cvars[_ENGINE_OSHOT]]
 
         # update colour
         chlist = step and self.chroma.smooth() or []
         for bufkey, nindex, offset in chlist:
             target = self.scheme
-            buffer = self.chroma.update(bufkey, nindex)
-            binary = array.array('B', buffer).tostring()
+            chroma = self.chroma.update(bufkey, nindex)
+            binary = array.array('B', chroma).tostring()
 
             cl.enqueue_write_buffer(self.q, target, binary, offset).wait()
 
         # invoke action
-        if self.cvars[_KOSHER_RESET]:
+        if self.cvars[_ENGINE_RESET]:
             self.enqueue(self.program.seedinit, self.buffer[self.iteration], self.states, urandom(4))
 
         # invoke design
         if step:
             if not (self.smooth % (1 << self.sorder)):
-                impact = struct.pack('BBBBII', step, self.vary, radius * self.cvars[_KOSHER_DRAWS], self.sparse, tx, ty)
+                impact = struct.pack('BBBBII', step, self.vary, radius * self.cvars[_ENGINE_DRAWS], self.sparse, tx, ty)
                 self.enqueue(self.program.niterate, self.buffer[self.iteration], self.buffer[not self.iteration], self.states, self.script, impact)
                 self.iteration = not self.iteration
                 self.genr += 1
