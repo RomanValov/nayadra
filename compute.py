@@ -199,9 +199,7 @@ class ComputeUnit:
 
         self.vary = 1
         self.vmax = 4
-        self.blnk = False
 
-        self.code = ''
         self.data = datapath
         self.rindex = 0
 
@@ -228,18 +226,13 @@ class ComputeUnit:
             self.cvars[_ENGINE_DRAWS] = not self.cvars[_ENGINE_DRAWS]
         elif key == pygame.K_1 or key == pygame.K_2 or key == pygame.K_3:
             self.vary = key - pygame.K_0
-        elif key == pygame.K_BACKSPACE:
+        elif key == pygame.K_r:
             self.cvars[_ENGINE_RESET] = True
 
         elif key == pygame.K_LEFTBRACKET:
             if self.sparse > 0x00: self.sparse -= 0x11
         elif key == pygame.K_RIGHTBRACKET:
             if self.sparse < 0xFF: self.sparse += 0x11
-
-        elif key == pygame.K_MINUS:
-            self.vary = (self.vary - 1) % self.vmax
-        elif key == pygame.K_EQUALS:
-            self.vary = (self.vary + 1) % self.vmax
 
         elif key == pygame.K_SEMICOLON:
             _files = os.listdir(self.data)
@@ -261,19 +254,16 @@ class ComputeUnit:
         elif key == pygame.K_PERIOD:
             self.vary = (self.vary + 1) % self.vmax
 
-        elif key == pygame.K_TAB:
+        elif key == pygame.K_SPACE:
             self.cvars[_ENGINE_OSHOT] = True
-        elif key == pygame.K_SCROLLOCK:
+        elif key == pygame.K_PAUSE:
             self.cvars[_ENGINE_PAUSE] = not self.cvars[_ENGINE_PAUSE]
 
-        elif key == pygame.K_SPACE:
+        elif key == pygame.K_TAB:
             self.recipe.make_random()
             cl.enqueue_write_buffer(self.q, self.script, self.recipe.data()).wait()
             #self.cvars[_ENGINE_RESET] = True
             self.cvars[_ENGINE_PAUSE] = False
-
-        elif key == pygame.K_QUESTION:
-            self.blnk = not self.blnk
 
         elif key == pygame.K_BACKSPACE:
             self.recipe.make_conway()
@@ -286,12 +276,12 @@ class ComputeUnit:
             cl.enqueue_write_buffer(self.q, self.script, self.recipe.data()).wait()
             self.cvars[_ENGINE_PAUSE] = False
 
-        elif key == pygame.K_KP_PLUS:
+        elif key == pygame.K_KP_MINUS:
             if self.sorder < 7:
                 self.sorder += 1
                 self.smooth <<= 1
 
-        elif key == pygame.K_KP_MINUS:
+        elif key == pygame.K_KP_PLUS:
             if self.sorder > 0:
                 self.sorder -= 1
                 self.smooth >>= 1

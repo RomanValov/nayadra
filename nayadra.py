@@ -147,7 +147,7 @@ def main():
                     elif bpress[2]:
                         board.zoomon(-1)
                     elif bpress[0]:
-                        engine.handled(pygame.K_DELETE)
+                        engine.handled(pygame.K_COMMA)
                         indraw = False
                     else:
                         cursor.resize(-1)
@@ -158,7 +158,7 @@ def main():
                     elif bpress[2]:
                         board.zoomon(+1)
                     elif bpress[0]:
-                        engine.handled(pygame.K_INSERT)
+                        engine.handled(pygame.K_PERIOD)
                         indraw = False
                     else:
                         cursor.resize(+1)
