@@ -7,6 +7,8 @@ RUNFOR = 0
 
 ZOOMTO = 0
 
+MOVETO = 0, 0
+
 CURSOR = 64
 
 DATA = 'data'

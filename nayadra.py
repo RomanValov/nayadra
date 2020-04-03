@@ -29,25 +29,25 @@ def main():
     screen = graphic.UIScreen((config.XLEN, config.YLEN))
     board = graphic.UIBoard(screen, (config.XTSZ, config.YTSZ))
     board.zoomto(config.ZOOMTO)
+    board.moveto(config.MOVETO)
 
     engine = control.Control((config.XTSZ, config.YTSZ), makepath(config.DATA, True))
     cursor = graphic.UICursor(board, config.CURSOR)
 
     # shell functions
-    func = {}
-    func['zoomon']  = lambda chzm: board.zoomon(chzm)
-    func['zoomto']  = lambda zoom: board.zoomto(zoom)
-    func['moveon']  = lambda dx, dy: board.moveon((dx, dy))
-    func['moveto']  = lambda dx, dy: board.moveto((dx, dy))
-    func['turnon']  = lambda turn: board.turnon(turn)
-    func['turnto']  = lambda turn: board.turnto(turn)
-    func['action']  = lambda draw=None: engine.handled(pygame.K_1)
-    func['marker']  = lambda mark=None: engine.handled(pygame.K_2)
-    func['eraser']  = lambda mark=None: engine.handled(pygame.K_3)
-    func['drop']    = lambda: engine.handled(pygame.K_7)
+    zoomon = lambda chzm: board.zoomon(chzm)
+    zoomto = lambda zoom: board.zoomto(zoom)
+    moveon = lambda dx, dy: board.moveon((dx, dy))
+    moveto = lambda dx, dy: board.moveto((dx, dy))
+    turnon = lambda turn: board.turnon(turn)
+    turnto = lambda turn: board.turnto(turn)
+    action = lambda draw=None: engine.handled(pygame.K_1)
+    marker = lambda mark=None: engine.handled(pygame.K_2)
+    eraser = lambda mark=None: engine.handled(pygame.K_3)
+    drop   = lambda: engine.handled(pygame.K_7)
 
     status = widgets.Status(screen, config.RUNFOR)
-    console = widgets.Console(screen, engine.banner, **func)
+    console = widgets.Console(screen, engine.banner, **locals())
 
     # timers
     clock = pygame.time.Clock()

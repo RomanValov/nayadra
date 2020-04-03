@@ -189,7 +189,7 @@ class ComputeUnit:
 
         self.smooth = 0
         self.sorder = 0
-        self.sparse = 0
+        self.sparse = 0x88
 
         self.cvars = [ False for x in xrange(_ENGINE_TOTAL) ]
 
