@@ -1,0 +1,12 @@
+XLEN, YLEN = 0, 0
+XTSZ, YTSZ = 4096, 4096
+
+KOSHER = True
+
+RUNFOR = 0
+
+ZOOMTO = 0
+
+DATA = 'data'
+
+SWITCH = 0
