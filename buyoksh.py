@@ -160,7 +160,7 @@ class UIConsole(object):
         if (len(buffer)/self.symbols[0] != self.innoff):
             self.innoff = len(buffer)/self.symbols[0]
             self.doout()
-        
+
         self.ilines = []
         self.ifresh = True
         for pos in xrange(0, len(buffer), self.symbols[0]):
@@ -273,7 +273,7 @@ class UIStatus(object):
 
         self.colors = (pygame.Color(0x00, 0x20, 0x40, 0x80), pygame.Color(0x00, 0x80, 0xFF, 0xC0))
         self.sbound = (self.font.rect()[0] * _UI_SYMBOLS + 2 * BORDERX, self.font.rect()[1] + 2 * BORDERY)
-        
+
         self.canvas = buyokui.UIElement(buyokgl.Widget(self.sbound, colors=self.colors))
         self.sttext = buyokui.UIElement(self.font.text(_UI_SYMBOLS))
 

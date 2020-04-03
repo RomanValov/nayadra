@@ -156,7 +156,7 @@ __kernel void niterate(
 const uchar4 find_colour(__global uchar4 *buffer, __constant uchar4 *scheme, unsigned int indice)
 {
 	const uchar4 object = buffer[indice];
- 	unsigned int offset = (object.x << 8) + object.w;
+	unsigned int offset = (object.x << 8) + object.w;
 	const uchar4 colour = scheme[offset];
 
 	colour.w = object.z;
@@ -174,7 +174,7 @@ struct factor {
 const uchar4 xlat_colour(const uchar4 wasobj, const uchar4 nowobj, const struct factor factor)
 {
 	unsigned char dither = (1 << factor.sorder) - factor.smooth;
-  	unsigned char x = ((unsigned int)wasobj.x * dither + (unsigned int)nowobj.x * factor.smooth) >> factor.sorder;
+	unsigned char x = ((unsigned int)wasobj.x * dither + (unsigned int)nowobj.x * factor.smooth) >> factor.sorder;
 	unsigned char y = ((unsigned int)wasobj.y * dither + (unsigned int)nowobj.y * factor.smooth) >> factor.sorder;
 	unsigned char z = ((unsigned int)wasobj.z * dither + (unsigned int)nowobj.z * factor.smooth) >> factor.sorder;
 	unsigned char w = nowobj.w;

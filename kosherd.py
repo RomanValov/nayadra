@@ -50,7 +50,7 @@ def create_gl_context():
             ctx = cl.Context(properties=[(cl.context_properties.PLATFORM, platform)] + get_gl_sharing_context_properties())
         except:
             ctx = cl.Context(properties=[(cl.context_properties.PLATFORM, platform)] + get_gl_sharing_context_properties(), devices=[platform.get_devices()[0]])
- 
+
     return ctx
 
 class Behavior(object):

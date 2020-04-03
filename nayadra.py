@@ -61,7 +61,7 @@ def main():
     blink = False
     fpsc = fps = 0
     countr = 0
-    
+
     # component keys
     SKIPKEYS = [ pygame.K_ESCAPE, pygame.K_MENU, pygame.K_RETURN ]
 
