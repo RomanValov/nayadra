@@ -1,7 +1,7 @@
 XLEN, YLEN = 0, 0
 XTSZ, YTSZ = 4096, 4096
 
-KOSHER = True
+ROTATE = True
 
 RUNFOR = 0
 

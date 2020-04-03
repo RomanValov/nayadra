@@ -30,7 +30,7 @@ def main():
     board = buyokui.UIBoard(screen, (config.XTSZ, config.YTSZ))
     board.zoomto(config.ZOOMTO)
 
-    kosher = adapter.Adapter((config.XTSZ, config.YTSZ), makepath(config.DATA, True))
+    engine = adapter.Adapter((config.XTSZ, config.YTSZ), makepath(config.DATA, True))
     cursor = buyokui.UICursor(board, 2)
 
     # shell functions
@@ -41,13 +41,13 @@ def main():
     func['moveto']  = lambda dx, dy: board.moveto((dx, dy))
     func['turnon']  = lambda turn: board.turnon(turn)
     func['turnto']  = lambda turn: board.turnto(turn)
-    func['action']  = lambda draw=None: kosher.sendkey(pygame.K_1)
-    func['marker']  = lambda mark=None: kosher.sendkey(pygame.K_2)
-    func['eraser']  = lambda mark=None: kosher.sendkey(pygame.K_3)
-    func['drop']    = lambda: kosher.sendkey(pygame.K_7)
+    func['action']  = lambda draw=None: engine.sendkey(pygame.K_1)
+    func['marker']  = lambda mark=None: engine.sendkey(pygame.K_2)
+    func['eraser']  = lambda mark=None: engine.sendkey(pygame.K_3)
+    func['drop']    = lambda: engine.sendkey(pygame.K_7)
 
     status = buyoksh.UIStatus(screen, config.RUNFOR)
-    console = buyoksh.UIConsole(screen, kosher.engine, **func)
+    console = buyoksh.UIConsole(screen, engine.banner, **func)
 
     # timers
     clock = pygame.time.Clock()
@@ -110,13 +110,13 @@ def main():
             elif event.type == pygame.USEREVENT + 2:
                 blink = not blink
             elif event.type == pygame.USEREVENT + 1:
-                kosher.sendkey(pygame.K_QUESTION)
+                engine.sendkey(pygame.K_QUESTION)
                 fps = fpsc
                 fpsc = 0
 
                 countr += 1
                 if config.SWITCH and not countr % config.SWITCH:
-                    kosher.sendkey(pygame.K_SPACE)
+                    engine.sendkey(pygame.K_SPACE)
             elif event.type == pygame.USEREVENT:
                 running = False
 
@@ -126,7 +126,7 @@ def main():
             elif event.type == pygame.KEYUP and event.key in status.events.keys():
                 status.events[event.key]()
             elif event.type == pygame.KEYUP and event.key in KOSHERKEYS:
-                kosher.sendkey(event.key)
+                engine.sendkey(event.key)
 
             # repeatable events
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_DELETE:
@@ -155,22 +155,22 @@ def main():
                 bevent = event.dict['button'] - 1
                 if bevent == 4:
                     if bpress[1] or (bpress[0] and bpress[2]):
-                        if inproc: kosher.sendkey(pygame.K_RIGHTBRACKET)
+                        if inproc: engine.sendkey(pygame.K_RIGHTBRACKET)
                     elif bpress[2]:
                         board.zoomon(-1)
                     elif bpress[0]:
-                        kosher.sendkey(pygame.K_DELETE)
+                        engine.sendkey(pygame.K_DELETE)
                         indraw = False
                     else:
                         cursor.resize(-1)
                     inproc = False
                 elif bevent == 3:
                     if bpress[1] or (bpress[0] and bpress[2]):
-                        if inproc: kosher.sendkey(pygame.K_LEFTBRACKET)
+                        if inproc: engine.sendkey(pygame.K_LEFTBRACKET)
                     elif bpress[2]:
                         board.zoomon(+1)
                     elif bpress[0]:
-                        kosher.sendkey(pygame.K_INSERT)
+                        engine.sendkey(pygame.K_INSERT)
                         indraw = False
                     else:
                         cursor.resize(+1)
@@ -181,7 +181,7 @@ def main():
                     board.breaks(noturn=True)
                 elif bevent == 0:
                     if not bpress[2] and not indraw:
-                        kosher.sendkey(pygame.K_BACKQUOTE)
+                        engine.sendkey(pygame.K_BACKQUOTE)
                         indraw = True
             elif event.type == pygame.MOUSEMOTION:
                 if pygame.mouse.get_rel() == (0, 0):
@@ -203,33 +203,35 @@ def main():
                         board.center((mx, my), +1)
                 elif bevent == 0:
                     if bpress[2] and not indraw and inproc:
-                        kosher.sendkey(pygame.K_BACKSPACE)
+                        engine.sendkey(pygame.K_BACKSPACE)
                     elif indraw:
-                        kosher.sendkey(pygame.K_BACKQUOTE)
+                        engine.sendkey(pygame.K_BACKQUOTE)
                         indraw = False
 
                 if not any(bpress):
                     inproc = True
                     inzoom = False
 
-        # kosher
-        kosher.impulse(board.totexcoords((mx, my)), cursor.radius)
-        kstate = kosher.reclaim(config.KOSHER, lambda: board.update(None))
+        # engine
+        engine.impulse(board.totexcoords((mx, my)), cursor.radius)
+        # domain
+        # moment
+        moment = engine.reclaim(config.ROTATE, lambda: board.update(None))
 
         # status
         uiinfo = []
 
         ux, uy = board.uicoords(status.mark)
         us, ua = board.uiparams()
-        uigenr = (not kstate['pause'] or blink) and (" %08X " % kstate['ngenr']) or "          "
+        uigenr = (not moment['pause'] or blink) and (" %08X " % moment['ngenr']) or "          "
 
-        uiinfo += [ " %1s %1s " % (kstate['draws'] and "D" or "", kstate['moved'] and "M" or "") ]
-        uiinfo += [ " %1X @%02X " % (kstate['marks'], kstate['dense']) ]
+        uiinfo += [ " %1s %1s " % (moment['draws'] and "D" or "", moment['moved'] and "M" or "") ]
+        uiinfo += [ " %1X @%02X " % (moment['marks'], moment['dense']) ]
         uiinfo += [ " %1s %1s " % (board.clamp and "V" or "", board.round and "A" or "") ]
         uiinfo += [" %4ux%4u | x%8.4f <%4u | %s %5u:%5u | R%4u | # %08X | %s " %
                    (config.XTSZ, config.YTSZ, us, ua,
                     status.mark and "CURSOR" or "CENTER", int(ux), int(uy),
-                    cursor.radius, kstate['trace'], status.clocks())]
+                    cursor.radius, moment['trace'], status.clocks())]
         uiinfo += [ uigenr ]
         uiinfo += [ " FPS %4u" % fps ]
 

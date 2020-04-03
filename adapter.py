@@ -1,6 +1,6 @@
 import threading
 import buyokgl
-import kosherd
+import compute
 
 class Adapter:
     def __init__(self, (xtsz, ytsz), datapath):
@@ -9,28 +9,28 @@ class Adapter:
         self.glbufs = buyokgl.pixel_buffer(self.length)
         self.buffer = self.glbufs.bufs
 
-        self.kosher = kosherd.ComputeUnit(self.bounds, datapath, self.buffer, True)
-        self.engine = self.kosher.vengine()
+        self.engine = compute.ComputeUnit(self.bounds, datapath, self.buffer, True)
+        self.banner = self.engine.vengine()
 
         self.impulse((0.0, 0.0), 0.0, True)
 
     def impulse(self, point, radius, init=False):
         if init or int(self.tx) != int(point[0]) or int(self.ty) != int(point[1]):
             self.tx, self.ty = point
-            self.kosher.shifted()
+            self.engine.shifted()
         self.radius = radius
 
     def sendkey(self, key):
-        self.kosher.command(key)
+        self.engine.command(key)
 
-    def reclaim(self, kosher, func):
-        self.kosher.preiter()
+    def reclaim(self, rotate, func):
+        self.engine.preiter()
 
-        if kosher:
-            iteration = self.kosher.iterate(self.tx, self.ty, self.radius)
+        if rotate:
+            iteration = self.engine.iterate(self.tx, self.ty, self.radius)
             self.glbufs.bind(func=func)
 
-        return self.kosher.inspect()
+        return self.engine.inspect()
 
 def benchmark(fps=60):
     pass
