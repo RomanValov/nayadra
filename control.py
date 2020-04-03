@@ -19,8 +19,8 @@ class Control:
             self.engine.shifted()
         self.radius = radius
 
-    def sendkey(self, key):
-        self.engine.command(key)
+    def handled(self, key):
+        self.engine.handled(key)
 
     def reclaim(self, rotate, func):
         self.engine.preiter()

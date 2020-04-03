@@ -91,25 +91,26 @@ class UIBoard(UIElement):
         for mark in self.cmarks:
             self.insert('center', mark)
 
-        self.events = self.mevent()
-
-    def mevent(self):
-        events = {}
+        self.events = {}
 
         def sround(): self.round = not self.round
         def sclamp():
             self.clamp = not self.clamp
             if self.clamp: self._clamp()
 
-        events[pygame.K_a] = sround
-        events[pygame.K_d] = sclamp
+        self.events[pygame.K_a] = sround
+        self.events[pygame.K_d] = sclamp
 
-        events[pygame.K_v] = lambda: drawing.vsync()
-        events[pygame.K_c] = lambda: (self.moveto((0.0, 0.0)), self.breaks(True, True))
-        events[pygame.K_x] = lambda: (self.zoomto(0.0, False), self.turnto(0.0), self.breaks(True, True), self._clamp())
-        events[pygame.K_z] = lambda: self.center(pygame.mouse.get_pos(), +1)
+        self.events[pygame.K_v] = lambda: drawing.vsync()
+        self.events[pygame.K_c] = lambda: (self.moveto((0.0, 0.0)), self.breaks(True, True))
+        self.events[pygame.K_x] = lambda: (self.zoomto(0.0, False), self.turnto(0.0), self.breaks(True, True), self._clamp())
+        self.events[pygame.K_z] = lambda: self.center(pygame.mouse.get_pos(), +1)
 
-        return events
+    def handled(self, key):
+        if key in self.events:
+            apply(self.events[key])
+        else:
+            return key
 
     def normal(self):
         cx, cy = self.rect()

@@ -289,6 +289,12 @@ class Status(object):
         self.events[pygame.K_q] = self.swmark
         self.events[pygame.K_w] = self.swtime
 
+    def handled(self, key):
+        if key in self.events:
+            apply(self.events[key])
+        else:
+            return key
+
     def _format(self, millis):
         return '%02i:%02i:%02i' % (millis / (60 * 60 * 1000), (millis / (60 * 1000)) % 60, (millis / 1000) % 60)
 

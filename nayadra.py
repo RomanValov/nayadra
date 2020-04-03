@@ -41,10 +41,10 @@ def main():
     func['moveto']  = lambda dx, dy: board.moveto((dx, dy))
     func['turnon']  = lambda turn: board.turnon(turn)
     func['turnto']  = lambda turn: board.turnto(turn)
-    func['action']  = lambda draw=None: engine.sendkey(pygame.K_1)
-    func['marker']  = lambda mark=None: engine.sendkey(pygame.K_2)
-    func['eraser']  = lambda mark=None: engine.sendkey(pygame.K_3)
-    func['drop']    = lambda: engine.sendkey(pygame.K_7)
+    func['action']  = lambda draw=None: engine.handled(pygame.K_1)
+    func['marker']  = lambda mark=None: engine.handled(pygame.K_2)
+    func['eraser']  = lambda mark=None: engine.handled(pygame.K_3)
+    func['drop']    = lambda: engine.handled(pygame.K_7)
 
     status = widgets.Status(screen, config.RUNFOR)
     console = widgets.Console(screen, engine.banner, **func)
@@ -65,12 +65,19 @@ def main():
     # component keys
     SKIPPED_KEYS = [ pygame.K_ESCAPE, pygame.K_MENU, pygame.K_RETURN ]
 
-    HANDLED_KEYS = []
-    HANDLED_KEYS += [ pygame.K_LEFTBRACKET, pygame.K_RIGHTBRACKET, pygame.K_SEMICOLON, pygame.K_QUOTE ]
-    HANDLED_KEYS += [ pygame.K_COMMA, pygame.K_PERIOD, pygame.K_BACKSPACE, pygame.K_SYSREQ, pygame.K_SCROLLOCK ]
-    HANDLED_KEYS += [ pygame.K_SPACE, pygame.K_TAB, pygame.K_BACKQUOTE, pygame.K_BACKSLASH, pygame.K_EQUALS, pygame.K_MINUS ]
-    HANDLED_KEYS += [ pygame.K_0, pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_KP_MINUS ]
-    HANDLED_KEYS += [ pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8, pygame.K_9, pygame.K_KP_PLUS ]
+    handled = dict()
+
+    # graphic keys
+    handled[pygame.KEYDOWN, pygame.K_DELETE] = lambda: cursor.resize(-1)
+    handled[pygame.KEYDOWN, pygame.K_INSERT] = lambda: cursor.resize(+1)
+    handled[pygame.KEYDOWN, pygame.K_HOME] = lambda: board.turnon(-1)
+    handled[pygame.KEYDOWN, pygame.K_END] = lambda: board.turnon(+1)
+    handled[pygame.KEYDOWN, pygame.K_PAGEDOWN] = lambda: board.zoomon(-1, False)
+    handled[pygame.KEYDOWN, pygame.K_PAGEUP] = lambda: board.zoomon(+1, False)
+    handled[pygame.KEYDOWN, pygame.K_LEFT] = lambda: board.moveon((-16, 0))
+    handled[pygame.KEYDOWN, pygame.K_RIGHT] = lambda: board.moveon((+16, 0))
+    handled[pygame.KEYDOWN, pygame.K_UP] = lambda: board.moveon((0, -16))
+    handled[pygame.KEYDOWN, pygame.K_DOWN] = lambda: board.moveon((0, +16))
 
     wx, wy = 0.0, 0.0
 
@@ -110,67 +117,48 @@ def main():
             elif event.type == pygame.USEREVENT + 2:
                 blink = not blink
             elif event.type == pygame.USEREVENT + 1:
-                engine.sendkey(pygame.K_QUESTION)
+                engine.handled(pygame.K_QUESTION)
                 fps = fpsc
                 fpsc = 0
 
                 countr += 1
                 if config.SWITCH and not countr % config.SWITCH:
-                    engine.sendkey(pygame.K_SPACE)
+                    engine.handled(pygame.K_SPACE)
             elif event.type == pygame.USEREVENT:
                 running = False
 
             # component events
-            elif event.type == pygame.KEYUP and event.key in board.events.keys():
-                board.events[event.key]()
-            elif event.type == pygame.KEYUP and event.key in status.events.keys():
-                status.events[event.key]()
-            elif event.type == pygame.KEYUP and event.key in HANDLED_KEYS:
-                engine.sendkey(event.key)
+            elif event.type == pygame.KEYUP and board.handled(event.key) == None:
+                pass
+            elif event.type == pygame.KEYUP and status.handled(event.key) == None:
+                pass
+            elif event.type == pygame.KEYUP and engine.handled(event.key) == None:
+                pass
 
-            # repeatable events
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_DELETE:
-                cursor.resize(-1)
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_INSERT:
-                cursor.resize(+1)
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_HOME:
-                board.turnon(-1)
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_END:
-                board.turnon(+1)
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_PAGEDOWN:
-                board.zoomon(-1, False)
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_PAGEUP:
-                board.zoomon(+1, False)
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
-                board.moveon((-16, 0))
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
-                board.moveon((+16, 0))
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
-                board.moveon((0, -16))
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN:
-                board.moveon((0, +16))
+            elif event.type == pygame.KEYDOWN and (event.type, event.key) in handled:
+                apply(handled[event.type, event.key])
 
             # mouse events
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 bevent = event.dict['button'] - 1
                 if bevent == 4:
                     if bpress[1] or (bpress[0] and bpress[2]):
-                        if inproc: engine.sendkey(pygame.K_RIGHTBRACKET)
+                        if inproc: engine.handled(pygame.K_RIGHTBRACKET)
                     elif bpress[2]:
                         board.zoomon(-1)
                     elif bpress[0]:
-                        engine.sendkey(pygame.K_DELETE)
+                        engine.handled(pygame.K_DELETE)
                         indraw = False
                     else:
                         cursor.resize(-1)
                     inproc = False
                 elif bevent == 3:
                     if bpress[1] or (bpress[0] and bpress[2]):
-                        if inproc: engine.sendkey(pygame.K_LEFTBRACKET)
+                        if inproc: engine.handled(pygame.K_LEFTBRACKET)
                     elif bpress[2]:
                         board.zoomon(+1)
                     elif bpress[0]:
-                        engine.sendkey(pygame.K_INSERT)
+                        engine.handled(pygame.K_INSERT)
                         indraw = False
                     else:
                         cursor.resize(+1)
@@ -181,7 +169,7 @@ def main():
                     board.breaks(noturn=True)
                 elif bevent == 0:
                     if not bpress[2] and not indraw:
-                        engine.sendkey(pygame.K_BACKQUOTE)
+                        engine.handled(pygame.K_BACKQUOTE)
                         indraw = True
             elif event.type == pygame.MOUSEMOTION:
                 if pygame.mouse.get_rel() == (0, 0):
@@ -203,9 +191,9 @@ def main():
                         board.center((mx, my), +1)
                 elif bevent == 0:
                     if bpress[2] and not indraw and inproc:
-                        engine.sendkey(pygame.K_BACKSPACE)
+                        engine.handled(pygame.K_BACKSPACE)
                     elif indraw:
-                        engine.sendkey(pygame.K_BACKQUOTE)
+                        engine.handled(pygame.K_BACKQUOTE)
                         indraw = False
 
                 if not any(bpress):

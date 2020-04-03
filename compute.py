@@ -220,7 +220,7 @@ class ComputeUnit:
     def shifted(self):
         self.cvars[_ENGINE_MOVED] = not self.cvars[_ENGINE_MOVED]
 
-    def command(self, key):
+    def handled(self, key):
         if not key: pass
 
         # marker
@@ -295,6 +295,9 @@ class ComputeUnit:
             if self.sorder > 0:
                 self.sorder -= 1
                 self.smooth >>= 1
+
+        else:
+            return key
 
     def vengine(self):
         return self.recipe.name()
