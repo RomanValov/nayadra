@@ -405,5 +405,3 @@ class Font:
 
     def rect(self):
         return self.symr
-
-
