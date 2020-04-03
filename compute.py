@@ -12,7 +12,7 @@ from os import urandom
 import pygame
 import time
 
-import koshertr
+import present
 
 ENGINE = 'birinchi .surround'
 
@@ -168,7 +168,7 @@ class ComputeUnit:
         self.states = cl.Buffer(self.ctx, mf.READ_WRITE, size=(xtsz * ytsz * 4))
         self.iteration = False
 
-        self.chroma = koshertr.ChromaTR(nitems=0x100)
+        self.chroma = present.Chroma(nitems=0x100)
         self.scheme = cl.Buffer(self.ctx, mf.READ_ONLY, size=self.chroma.create(0, 0x10))
 
         self.recipe = Recipe(0x10, 0x04)

@@ -116,7 +116,7 @@ class ChromaDB:
                 self.dirt[nindex] = False
         return chlist
 
-class ChromaTR:
+class Chroma:
     def __init__(self, nitems=0x100, blends=0x20):
         self.nitems = nitems
         self.blends = blends

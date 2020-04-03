@@ -2,8 +2,8 @@ import pygame
 import time
 import sys
 
-import buyokui
-import buyokgl
+import graphic
+import drawing
 
 import code
 
@@ -20,7 +20,7 @@ _UICONS_NTOTAL = 3
 
 _UI_SYMBOLS = 128
 
-class UIConsole(object):
+class Console(object):
     def __init__(self, root, vengine, **kwargs):
         self.context = {    'quit' : lambda: self.onoff(state=_UICONS_NONE),
                             'exit' : lambda: self.onoff(state=_UICONS_NONE),
@@ -35,14 +35,14 @@ class UIConsole(object):
 
         self.colors = (pygame.Color(0x20, 0x20, 0x20, 0xC0), pygame.Color(0x00, 0x80, 0xFF, 0xC0))
 
-        self.curbox = buyokui.UIElement(buyokgl.Widget((self.symsize[0], 4), colors=(pygame.Color(0x00, 0xFF, 0x00, 0xC0), None)))
+        self.curbox = graphic.UIElement(drawing.Widget((self.symsize[0], 4), colors=(pygame.Color(0x00, 0xFF, 0x00, 0xC0), None)))
         self.cursor = False
 
         self.nlines = self._dosym((self.symsize[0] * _UI_SYMBOLS + 2 * BORDERX, self.root.rect()[1] - self.font.rect()[1] - 2 * BORDERY))[1]
-        self.oprint = buyokui.UIElement(self.font.text(_UI_SYMBOLS * self.nlines))
-        self.iprint = buyokui.UIElement(self.font.text(_UI_SYMBOLS * self.nlines))
+        self.oprint = graphic.UIElement(self.font.text(_UI_SYMBOLS * self.nlines))
+        self.iprint = graphic.UIElement(self.font.text(_UI_SYMBOLS * self.nlines))
 
-        self.canvas = buyokui.UIElement(buyokgl.Widget((0.0, 0.0), colors=self.colors))
+        self.canvas = graphic.UIElement(drawing.Widget((0.0, 0.0), colors=self.colors))
         self._cmode()
 
         self.history = [ "" ]
@@ -263,7 +263,7 @@ _UITIME_RUNFOR = 1
 _UITIME_GLOBAL = 2
 _UITIME_NTOTAL = 3
 
-class UIStatus(object):
+class Status(object):
     def __init__(self, root, runfor):
         self.time = runfor and _UITIME_RUNFOR or _UITIME_INGAME
         self.mark = True
@@ -274,8 +274,8 @@ class UIStatus(object):
         self.colors = (pygame.Color(0x00, 0x20, 0x40, 0x80), pygame.Color(0x00, 0x80, 0xFF, 0xC0))
         self.sbound = (self.font.rect()[0] * _UI_SYMBOLS + 2 * BORDERX, self.font.rect()[1] + 2 * BORDERY)
 
-        self.canvas = buyokui.UIElement(buyokgl.Widget(self.sbound, colors=self.colors))
-        self.sttext = buyokui.UIElement(self.font.text(_UI_SYMBOLS))
+        self.canvas = graphic.UIElement(drawing.Widget(self.sbound, colors=self.colors))
+        self.sttext = graphic.UIElement(self.font.text(_UI_SYMBOLS))
 
         strect = self.canvas.rect()
         uirect = self.font.size(' ' * _UI_SYMBOLS)

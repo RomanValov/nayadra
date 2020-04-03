@@ -4,9 +4,9 @@ import sys
 import os.path
 import cProfile
 
-import buyoksh
-import buyokui
-import adapter
+import widgets
+import graphic
+import control
 
 try:
     import config
@@ -26,12 +26,12 @@ def main():
     # initui
     pygame.init()
 
-    screen = buyokui.UIScreen((config.XLEN, config.YLEN))
-    board = buyokui.UIBoard(screen, (config.XTSZ, config.YTSZ))
+    screen = graphic.UIScreen((config.XLEN, config.YLEN))
+    board = graphic.UIBoard(screen, (config.XTSZ, config.YTSZ))
     board.zoomto(config.ZOOMTO)
 
-    engine = adapter.Adapter((config.XTSZ, config.YTSZ), makepath(config.DATA, True))
-    cursor = buyokui.UICursor(board, 2)
+    engine = control.Control((config.XTSZ, config.YTSZ), makepath(config.DATA, True))
+    cursor = graphic.UICursor(board, 2)
 
     # shell functions
     func = {}
@@ -46,8 +46,8 @@ def main():
     func['eraser']  = lambda mark=None: engine.sendkey(pygame.K_3)
     func['drop']    = lambda: engine.sendkey(pygame.K_7)
 
-    status = buyoksh.UIStatus(screen, config.RUNFOR)
-    console = buyoksh.UIConsole(screen, engine.banner, **func)
+    status = widgets.Status(screen, config.RUNFOR)
+    console = widgets.Console(screen, engine.banner, **func)
 
     # timers
     clock = pygame.time.Clock()
@@ -92,7 +92,7 @@ def main():
                 if console.shown:
                     console.enter(event.key, '\n')
                 else:
-                    console.onoff(state=buyoksh._UICONS_FULL)
+                    console.onoff(state=widgets._UICONS_FULL)
             elif event.type == pygame.KEYUP and event.key == pygame.K_MENU:
                 console.onoff(True)
             elif event.type == pygame.KEYUP and event.key == pygame.K_F5:

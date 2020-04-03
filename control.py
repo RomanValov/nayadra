@@ -1,12 +1,11 @@
-import threading
-import buyokgl
+import drawing
 import compute
 
-class Adapter:
+class Control:
     def __init__(self, (xtsz, ytsz), datapath):
         self.bounds = (xtsz, ytsz)
         self.length = xtsz * ytsz * 4
-        self.glbufs = buyokgl.pixel_buffer(self.length)
+        self.glbufs = drawing.pixel_buffer(self.length)
         self.buffer = self.glbufs.bufs
 
         self.engine = compute.ComputeUnit(self.bounds, datapath, self.buffer, True)

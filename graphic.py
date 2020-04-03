@@ -2,7 +2,7 @@ import math
 import pygame
 from collections import OrderedDict as ordered
 
-import buyokgl
+import drawing
 
 _INERT_THRESH = 1024.0 / (1000.0  * 64.0)
 _INERT_FRICTS = 1.12
@@ -19,9 +19,9 @@ class UIElement(object):
         for name in self.draws:
             draw, x, y = self.draws[name]
 
-            buyokgl.shift((x, y))
+            drawing.shift((x, y))
             draw.render()
-            buyokgl.shift()
+            drawing.shift()
 
     def insert(self, name, draw, x=0.0, y=0.0):
         self.draws[name] = (draw, x, y)
@@ -61,9 +61,9 @@ class UIScreen(UIElement):
     def __init__(self, (x, y)):
         x, y = self.make((x, y))
         self.calc((x, y))
-        super(UIScreen, self).__init__(buyokgl.Screen((x, y)))
+        super(UIScreen, self).__init__(drawing.Screen((x, y)))
 
-        self.font = buyokgl.Font(pygame.font.Font(pygame.font.match_font("consolas", bold=True), 14))
+        self.font = drawing.Font(pygame.font.Font(pygame.font.match_font("consolas", bold=True), 14))
 
     def render(self):
         super(UIScreen, self).render()
@@ -73,7 +73,7 @@ class UIBoard(UIElement):
     def __init__(self, root, rect, round=False, clamp=False):
         self.root = root
 
-        super(UIBoard, self).__init__(buyokgl.TexTile(rect, self.root.rect()))
+        super(UIBoard, self).__init__(drawing.TexTile(rect, self.root.rect()))
         self.root.insert('board', self)
 
         self.round = round
@@ -87,7 +87,7 @@ class UIBoard(UIElement):
         self.ax, self.ay = 0.0, 0.0
         self.aangle = 0.0
 
-        self.cmarks = [ UIElement(buyokgl.CrossMark((self.root.XC, self.root.YC), 32.0, 0.0)) ]
+        self.cmarks = [ UIElement(drawing.CrossMark((self.root.XC, self.root.YC), 32.0, 0.0)) ]
         for mark in self.cmarks:
             self.insert('center', mark)
 
@@ -104,7 +104,7 @@ class UIBoard(UIElement):
         events[pygame.K_a] = sround
         events[pygame.K_d] = sclamp
 
-        events[pygame.K_v] = lambda: buyokgl.vsync()
+        events[pygame.K_v] = lambda: drawing.vsync()
         events[pygame.K_c] = lambda: (self.moveto((0.0, 0.0)), self.breaks(True, True))
         events[pygame.K_x] = lambda: (self.zoomto(0.0, False), self.turnto(0.0), self.breaks(True, True), self._clamp())
         events[pygame.K_z] = lambda: self.center(pygame.mouse.get_pos(), +1)
@@ -283,9 +283,9 @@ class UICursor():
     def __init__(self, root, radius):
         self.root = root
 
-        self.canvas = UIElement(buyokgl.DrawCursor())
-        self.pointr = UIElement(buyokgl.DrawCursor())
-#        self.scaled = UIElement(buyokgl.DrawCursor())
+        self.canvas = UIElement(drawing.DrawCursor())
+        self.pointr = UIElement(drawing.DrawCursor())
+#        self.scaled = UIElement(drawing.DrawCursor())
 
         self.border = pygame.Color('Green')
         self.radius = radius
