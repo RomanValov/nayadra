@@ -116,10 +116,12 @@ class UIBoard(UIElement):
 
             'zoomon': lambda chzm: self.zoomon(chzm),
             'zoomto': lambda zoom: self.zoomto(zoom),
-            'moveon': lambda dx, dy: self.moveon((dx, dy)),
-            'moveto': lambda dx, dy: self.moveto((dx, dy)),
+            'moveon': lambda *args: self.moveon(*args),
+            'moveto': lambda *args: self.moveto(*args),
             'turnon': lambda turn: self.turnon(turn),
             'turnto': lambda turn: self.turnto(turn),
+
+            'rotate': lambda *args: self.rotate(*args),
         }
 
     def normal(self):

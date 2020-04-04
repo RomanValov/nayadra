@@ -65,6 +65,9 @@ handled = {
     (pygame.KEYUP, pygame.K_SYSREQ): 'backup',
     (pygame.KEYUP, pygame.K_KP_MINUS): 'slower',
     (pygame.KEYUP, pygame.K_KP_PLUS): 'faster',
+
+    (pygame.KEYUP, pygame.K_q): 'swmark',
+    (pygame.KEYUP, pygame.K_w): 'swtime',
 }
 
 def main():
@@ -89,6 +92,8 @@ def main():
 
     status = widgets.Status(screen, config.RUNFOR)
     console = widgets.Console(screen, engine.banner, **methods)
+
+    methods.update(status.events)
 
     # timers
     clock = pygame.time.Clock()
@@ -161,10 +166,6 @@ def main():
                 method = handled[event.type, event.key]
                 apply(methods[method])
 
-            # component events
-            elif event.type == pygame.KEYUP and status.handled(event.key) == None:
-                pass
-
             # mouse events
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 bevent = event.dict['button'] - 1
@@ -202,20 +203,20 @@ def main():
                 if pygame.mouse.get_rel() == (0, 0):
                     continue
                 elif (bpress[1] and bpress[2]):
-                    board.rotate((wx, wy), (mx, my), False)
+                    apply(methods['rotate'], ((wx, wy), (mx, my), False))
                     inproc = False
                     inzoom = True
                 elif bpress[1] or (bpress[0] and bpress[2]) and not inzoom:
-                    board.rotate((wx, wy), (mx, my), True)
+                    apply(methods['rotate'], ((wx, wy), (mx, my), True))
                     inproc = False
                 elif bpress[2] and not inzoom:
-                    board.moveon((wx - mx, wy - my), True)
+                    apply(methods['moveon'], ((wx - mx, wy - my), True))
                 wx, wy = mx, my
             elif event.type == pygame.MOUSEBUTTONUP:
                 bevent = event.dict['button'] - 1
                 if bevent == 1:
                     if bpress[2] and inproc:
-                        board.center((mx, my), +1)
+                        apply(methods['center'], ((mx, my), +1))
                 elif bevent == 0:
                     if bpress[2] and not indraw and inproc:
                         apply(methods['reload'])
