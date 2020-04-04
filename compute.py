@@ -218,76 +218,80 @@ class ComputeUnit:
     def shifted(self):
         self.cvars[_ENGINE_MOVED] = not self.cvars[_ENGINE_MOVED]
 
-    def handled(self, key):
-        if not key: pass
-
-        # marker
-        elif key == pygame.K_BACKQUOTE:
-            self.cvars[_ENGINE_DRAWS] = not self.cvars[_ENGINE_DRAWS]
-        elif key == pygame.K_1 or key == pygame.K_2 or key == pygame.K_3:
-            self.vary = key - pygame.K_0
-        elif key == pygame.K_r:
-            self.cvars[_ENGINE_RESET] = True
-
-        elif key == pygame.K_LEFTBRACKET:
-            if self.sparse > 0x00: self.sparse -= 0x11
-        elif key == pygame.K_RIGHTBRACKET:
-            if self.sparse < 0xFF: self.sparse += 0x11
-
-        elif key == pygame.K_SEMICOLON:
+    def restore(self, direction):
+        if direction:
             _files = os.listdir(self.data)
             if _files:
                 self.rindex = (self.rindex + 1) % len(_files)
                 self.recipe.load(os.path.join(self.data, _files[self.rindex]))
                 cl.enqueue_write_buffer(self.q, self.script, self.recipe.data()).wait()
-
-        elif key == pygame.K_QUOTE:
+        else:
             _files = os.listdir(self.data)
             if _files:
                 self.rindex = (self.rindex - 1) % len(_files)
                 self.recipe.load(os.path.join(self.data, rfiles[self.rindex]))
                 cl.enqueue_write_buffer(self.q, self.script, self.recipe.data()).wait()
 
-        elif key == pygame.K_COMMA:
-            self.vary = (self.vary - 1) % self.vmax
+    def back_up(self):
+        self.recipe.save(os.path.join(self.data, 'surround.%08X.bin' % int(time.time())))
+        cl.enqueue_write_buffer(self.q, self.script, self.recipe.data()).wait()
+        self.cvars[_ENGINE_PAUSE] = False
 
-        elif key == pygame.K_PERIOD:
-            self.vary = (self.vary + 1) % self.vmax
+    def handled(self):
 
-        elif key == pygame.K_SPACE:
-            self.cvars[_ENGINE_OSHOT] = True
-        elif key == pygame.K_PAUSE:
-            self.cvars[_ENGINE_PAUSE] = not self.cvars[_ENGINE_PAUSE]
+        def _marker(): self.cvars[_ENGINE_DRAWS] = not self.cvars[_ENGINE_DRAWS]
+        def _mark_1(): self.vary = 1
+        def _mark_2(): self.vary = 2
+        def _mark_3(): self.vary = 3
+        def _reload(): self.cvars[_ENGINE_RESET] = True
+        def _fill_l():
+            if self.sparse > 0x00: self.sparse -= 0x11
+        def _fill_m():
+            if self.sparse < 0xFF: self.sparse += 0x11
+        def _pick_n(): self.vary = (self.vary - 1) % self.vmax
+        def _pick_p(): self.vary = (self.vary + 1) % self.vmax
+        def _stepby(): self.cvars[_ENGINE_OSHOT] = True
+        def _switch(): self.cvars[_ENGINE_PAUSE] = not self.cvars[_ENGINE_PAUSE]
 
-        elif key == pygame.K_TAB:
+        def _random():
             self.recipe.make_random()
             cl.enqueue_write_buffer(self.q, self.script, self.recipe.data()).wait()
             #self.cvars[_ENGINE_RESET] = True
             self.cvars[_ENGINE_PAUSE] = False
 
-        elif key == pygame.K_BACKSPACE:
+        def _conway():
             self.recipe.make_conway()
             cl.enqueue_write_buffer(self.q, self.script, self.recipe.data()).wait()
             self.cvars[_ENGINE_RESET] = True
             self.cvars[_ENGINE_PAUSE] = False
 
-        elif key == pygame.K_SYSREQ:
-            self.recipe.save(os.path.join(self.data, 'surround.%08X.bin' % int(time.time())))
-            cl.enqueue_write_buffer(self.q, self.script, self.recipe.data()).wait()
-            self.cvars[_ENGINE_PAUSE] = False
-
-        elif key == pygame.K_KP_MINUS:
+        def _slower():
             if self.sorder < 7:
                 self.sorder += 1
                 self.smooth <<= 1
 
-        elif key == pygame.K_KP_PLUS:
+        def _faster():
             if self.sorder > 0:
                 self.sorder -= 1
                 self.smooth >>= 1
 
-        else:
-            return key
+        return {
+            'marker': _marker,
+            'mark_1': _mark_1,
+            'mark_2': _mark_2,
+            'mark_3': _mark_3,
+            'reload': _reload,
+            'fill_l': _fill_l,
+            'fill_m': _fill_m,
+            'pick_n': _pick_n,
+            'pick_p': _pick_p,
+            'stepby': _stepby,
+            'switch': _switch,
+            'random': _random,
+            'conway': _conway,
+            'slower': _slower,
+            'faster': _faster,
+        }
 
     def vengine(self):
         return self.recipe.name()

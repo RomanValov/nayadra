@@ -41,30 +41,51 @@ handled = {
     (pygame.KEYDOWN, pygame.K_c): 'center',
     (pygame.KEYDOWN, pygame.K_x): 'noturn',
     (pygame.KEYDOWN, pygame.K_z): 'nozoom',
+
+    (pygame.KEYUP, pygame.K_BACKQUOTE): 'marker',
+    (pygame.KEYUP, pygame.K_1): 'mark_1',
+    (pygame.KEYUP, pygame.K_2): 'mark_2',
+    (pygame.KEYUP, pygame.K_3): 'mark_3',
+    (pygame.KEYUP, pygame.K_r): 'reload',
+    (pygame.KEYUP, pygame.K_LEFTBRACKET): 'fill_l',
+    (pygame.KEYUP, pygame.K_RIGHTBRACKET): 'fill_m',
+
+    #(pygame.KEYUP, pygame.K_SEMICOLON): None,
+    #(pygame.KEYUP, pygame.K_QUOTE): None,
+
+    (pygame.KEYUP, pygame.K_COMMA): 'pick_n',
+    (pygame.KEYUP, pygame.K_PERIOD): 'pick_p',
+
+    (pygame.KEYUP, pygame.K_SPACE): 'stepby',
+    (pygame.KEYUP, pygame.K_PAUSE): 'switch',
+
+    (pygame.KEYUP, pygame.K_TAB): 'random',
+    (pygame.KEYUP, pygame.K_BACKSPACE): 'conway',
+
+    (pygame.KEYUP, pygame.K_SYSREQ): 'backup',
+    (pygame.KEYUP, pygame.K_KP_MINUS): 'slower',
+    (pygame.KEYUP, pygame.K_KP_PLUS): 'faster',
 }
 
 def main():
     # initui
     pygame.init()
 
+    methods = {}
+
     screen = graphic.UIScreen((config.XLEN, config.YLEN))
+
     board = graphic.UIBoard(screen, (config.XTSZ, config.YTSZ))
     board.zoomto(config.ZOOMTO)
     board.moveto(config.MOVETO)
 
-    engine = control.Control((config.XTSZ, config.YTSZ), makepath(config.DATA, True))
     cursor = graphic.UICursor(board, config.CURSOR)
 
-    # shell functions
-    methods = {}
+    engine = control.Control((config.XTSZ, config.YTSZ), makepath(config.DATA, True))
 
-    methods['mark_1'] = lambda draw=None: engine.handled(pygame.K_1)
-    methods['mark_2'] = lambda mark=None: engine.handled(pygame.K_2)
-    methods['mark_3'] = lambda mark=None: engine.handled(pygame.K_3)
-    methods['drop']   = lambda: engine.handled(pygame.K_7)
-
-    methods.update(cursor.events)
     methods.update(board.events)
+    methods.update(cursor.events)
+    methods.update(engine.handled())
 
     status = widgets.Status(screen, config.RUNFOR)
     console = widgets.Console(screen, engine.banner, **methods)
@@ -123,13 +144,12 @@ def main():
             elif event.type == pygame.USEREVENT + 2:
                 blink = not blink
             elif event.type == pygame.USEREVENT + 1:
-                engine.handled(pygame.K_QUESTION)
                 fps = fpsc
                 fpsc = 0
 
                 countr += 1
                 if config.SWITCH and not countr % config.SWITCH:
-                    engine.handled(pygame.K_SPACE)
+                    apply(methods['random'])
             elif event.type == pygame.USEREVENT:
                 running = False
 
@@ -144,30 +164,28 @@ def main():
             # component events
             elif event.type == pygame.KEYUP and status.handled(event.key) == None:
                 pass
-            elif event.type == pygame.KEYUP and engine.handled(event.key) == None:
-                pass
 
             # mouse events
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 bevent = event.dict['button'] - 1
                 if bevent == 4:
                     if bpress[1] or (bpress[0] and bpress[2]):
-                        if inproc: engine.handled(pygame.K_RIGHTBRACKET)
+                        if inproc: apply(methods['fill_m'])
                     elif bpress[2]:
-                        board.zoomon(-1)
+                        apply(methods['zoomon'], (-1,))
                     elif bpress[0]:
-                        engine.handled(pygame.K_COMMA)
+                        apply(methods['pick_n'])
                         indraw = False
                     else:
                         cursor.resize(-1)
                     inproc = False
                 elif bevent == 3:
                     if bpress[1] or (bpress[0] and bpress[2]):
-                        if inproc: engine.handled(pygame.K_LEFTBRACKET)
+                        if inproc: apply(methods['fill_r'])
                     elif bpress[2]:
-                        board.zoomon(+1)
+                        apply(methods['zoomon'], (+1,))
                     elif bpress[0]:
-                        engine.handled(pygame.K_PERIOD)
+                        apply(methods['pick_p'])
                         indraw = False
                     else:
                         cursor.resize(+1)
@@ -178,7 +196,7 @@ def main():
                     board.breaks(noturn=True)
                 elif bevent == 0:
                     if not bpress[2] and not indraw:
-                        engine.handled(pygame.K_BACKQUOTE)
+                        apply(methods['marker'])
                         indraw = True
             elif event.type == pygame.MOUSEMOTION:
                 if pygame.mouse.get_rel() == (0, 0):
@@ -200,9 +218,9 @@ def main():
                         board.center((mx, my), +1)
                 elif bevent == 0:
                     if bpress[2] and not indraw and inproc:
-                        engine.handled(pygame.K_BACKSPACE)
+                        apply(methods['reload'])
                     elif indraw:
-                        engine.handled(pygame.K_BACKQUOTE)
+                        apply(methods['marker'])
                         indraw = False
 
                 if not any(bpress):
