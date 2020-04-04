@@ -63,7 +63,7 @@ class UIScreen(UIElement):
         self.calc((x, y))
         super(UIScreen, self).__init__(drawing.Screen((x, y)))
 
-        self.font = drawing.Font(pygame.font.Font(pygame.font.match_font("consolas", bold=True), 14))
+        self.font = drawing.Font(pygame.font.Font(pygame.font.match_font("consolas", bold=True), 21))
 
     def render(self):
         super(UIScreen, self).render()
