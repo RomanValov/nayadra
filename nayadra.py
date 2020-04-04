@@ -120,6 +120,18 @@ def main():
         for event in pygame.event.get():
             mx, my = pygame.mouse.get_pos()
             bpress = pygame.mouse.get_pressed()
+            bevent = event.dict.get('button', 0) - 1
+
+            with_middle = bevent == 1
+            with_right = bevent == 2
+            with_left = bevent == 0
+
+            with_fore = bevent == 3
+            with_back = bevent == 4
+
+            when_middle = bpress[1] or (bpress[0] and bpress[2])
+            when_right = bpress[2]
+            when_left = bpress[0]
 
             # console events
             if event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE:
@@ -168,57 +180,55 @@ def main():
 
             # mouse events
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                bevent = event.dict['button'] - 1
-                if bevent == 4:
-                    if bpress[1] or (bpress[0] and bpress[2]):
+                if with_fore:
+                    if when_middle:
                         if inproc: apply(methods['fill_m'])
-                    elif bpress[2]:
+                    elif when_right:
                         apply(methods['zoomon'], (-1,))
-                    elif bpress[0]:
+                    elif when_left:
                         apply(methods['pick_n'])
                         indraw = False
                     else:
-                        cursor.resize(-1)
+                        apply(methods['shrink'])
                     inproc = False
-                elif bevent == 3:
-                    if bpress[1] or (bpress[0] and bpress[2]):
+                elif with_back:
+                    if when_middle:
                         if inproc: apply(methods['fill_r'])
-                    elif bpress[2]:
+                    elif when_right:
                         apply(methods['zoomon'], (+1,))
-                    elif bpress[0]:
+                    elif when_left:
                         apply(methods['pick_p'])
                         indraw = False
                     else:
-                        cursor.resize(+1)
+                        apply(methods['expand'])
                     inproc = False
-                elif bevent == 2:
+                elif with_right:
                     board.breaks(nomove=True)
-                elif bevent == 1:
+                elif with_middle:
                     board.breaks(noturn=True)
-                elif bevent == 0:
-                    if not bpress[2] and not indraw:
+                elif with_left:
+                    if not when_right and not indraw:
                         apply(methods['marker'])
                         indraw = True
             elif event.type == pygame.MOUSEMOTION:
                 if pygame.mouse.get_rel() == (0, 0):
                     continue
-                elif (bpress[1] and bpress[2]):
+                elif (when_middle and when_right):
                     apply(methods['rotate'], ((wx, wy), (mx, my), False))
                     inproc = False
                     inzoom = True
-                elif bpress[1] or (bpress[0] and bpress[2]) and not inzoom:
+                elif (when_middle) and not inzoom:
                     apply(methods['rotate'], ((wx, wy), (mx, my), True))
                     inproc = False
-                elif bpress[2] and not inzoom:
+                elif (when_right) and not inzoom:
                     apply(methods['moveon'], ((wx - mx, wy - my), True))
                 wx, wy = mx, my
             elif event.type == pygame.MOUSEBUTTONUP:
-                bevent = event.dict['button'] - 1
-                if bevent == 1:
-                    if bpress[2] and inproc:
+                if with_middle:
+                    if when_right and inproc:
                         apply(methods['center'], ((mx, my), +1))
-                elif bevent == 0:
-                    if bpress[2] and not indraw and inproc:
+                elif with_left:
+                    if when_right and not indraw and inproc:
                         apply(methods['reload'])
                     elif indraw:
                         apply(methods['marker'])
