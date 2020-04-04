@@ -35,19 +35,20 @@ def main():
     cursor = graphic.UICursor(board, config.CURSOR)
 
     # shell functions
-    zoomon = lambda chzm: board.zoomon(chzm)
-    zoomto = lambda zoom: board.zoomto(zoom)
-    moveon = lambda dx, dy: board.moveon((dx, dy))
-    moveto = lambda dx, dy: board.moveto((dx, dy))
-    turnon = lambda turn: board.turnon(turn)
-    turnto = lambda turn: board.turnto(turn)
-    action = lambda draw=None: engine.handled(pygame.K_1)
-    marker = lambda mark=None: engine.handled(pygame.K_2)
-    eraser = lambda mark=None: engine.handled(pygame.K_3)
-    drop   = lambda: engine.handled(pygame.K_7)
+    methods = {}
+
+    methods['action'] = lambda draw=None: engine.handled(pygame.K_1)
+    methods['marker'] = lambda mark=None: engine.handled(pygame.K_2)
+    methods['eraser'] = lambda mark=None: engine.handled(pygame.K_3)
+    methods['drop']   = lambda: engine.handled(pygame.K_7)
+
+    methods['shrink'] = lambda: cursor.resize(-1)
+    methods['expand'] = lambda: cursor.resize(+1)
+
+    methods.update(board.handled())
 
     status = widgets.Status(screen, config.RUNFOR)
-    console = widgets.Console(screen, engine.banner, **locals())
+    console = widgets.Console(screen, engine.banner, **methods)
 
     # timers
     clock = pygame.time.Clock()
@@ -68,16 +69,24 @@ def main():
     handled = dict()
 
     # graphic keys
-    handled[pygame.KEYDOWN, pygame.K_DELETE] = lambda: cursor.resize(-1)
-    handled[pygame.KEYDOWN, pygame.K_INSERT] = lambda: cursor.resize(+1)
-    handled[pygame.KEYDOWN, pygame.K_HOME] = lambda: board.turnon(-1)
-    handled[pygame.KEYDOWN, pygame.K_END] = lambda: board.turnon(+1)
-    handled[pygame.KEYDOWN, pygame.K_PAGEDOWN] = lambda: board.zoomon(-1, False)
-    handled[pygame.KEYDOWN, pygame.K_PAGEUP] = lambda: board.zoomon(+1, False)
-    handled[pygame.KEYDOWN, pygame.K_LEFT] = lambda: board.moveon((-16, 0))
-    handled[pygame.KEYDOWN, pygame.K_RIGHT] = lambda: board.moveon((+16, 0))
-    handled[pygame.KEYDOWN, pygame.K_UP] = lambda: board.moveon((0, -16))
-    handled[pygame.KEYDOWN, pygame.K_DOWN] = lambda: board.moveon((0, +16))
+    handled[pygame.KEYDOWN, pygame.K_DELETE] = 'shrink'
+    handled[pygame.KEYDOWN, pygame.K_INSERT] = 'expand'
+    handled[pygame.KEYDOWN, pygame.K_HOME] = 'turn_f'
+    handled[pygame.KEYDOWN, pygame.K_END] = 'turn_b'
+    handled[pygame.KEYDOWN, pygame.K_PAGEDOWN] = 'zoom_o'
+    handled[pygame.KEYDOWN, pygame.K_PAGEUP] = 'zoom_i'
+    handled[pygame.KEYDOWN, pygame.K_LEFT] = 'move_l'
+    handled[pygame.KEYDOWN, pygame.K_RIGHT] = 'move_r'
+    handled[pygame.KEYDOWN, pygame.K_UP] = 'move_u'
+    handled[pygame.KEYDOWN, pygame.K_DOWN] = 'move_d'
+
+    handled[pygame.KEYDOWN, pygame.K_a] = '_round'
+    handled[pygame.KEYDOWN, pygame.K_d] = '_clamp'
+
+    handled[pygame.KEYDOWN, pygame.K_v] = '_vsync'
+    handled[pygame.KEYDOWN, pygame.K_c] = 'center'
+    handled[pygame.KEYDOWN, pygame.K_x] = 'noturn'
+    handled[pygame.KEYDOWN, pygame.K_z] = 'nozoom'
 
     wx, wy = 0.0, 0.0
 
@@ -127,9 +136,15 @@ def main():
             elif event.type == pygame.USEREVENT:
                 running = False
 
+            # events to methods
+            elif event.type == pygame.KEYUP and (event.type, event.key) in handled:
+                method = handled[event.type, event.key]
+                apply(methods[method])
+            elif event.type == pygame.KEYDOWN and (event.type, event.key) in handled:
+                method = handled[event.type, event.key]
+                apply(methods[method])
+
             # component events
-            elif event.type == pygame.KEYUP and board.handled(event.key) == None:
-                pass
             elif event.type == pygame.KEYUP and status.handled(event.key) == None:
                 pass
             elif event.type == pygame.KEYUP and engine.handled(event.key) == None:

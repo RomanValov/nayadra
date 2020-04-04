@@ -91,26 +91,39 @@ class UIBoard(UIElement):
         for mark in self.cmarks:
             self.insert('center', mark)
 
-        self.events = {}
+        self.method = {}
 
         def sround(): self.round = not self.round
         def sclamp():
             self.clamp = not self.clamp
             if self.clamp: self._clamp()
 
-        self.events[pygame.K_a] = sround
-        self.events[pygame.K_d] = sclamp
+        self.method['_round'] = sround
+        self.method['_clamp'] = sclamp
 
-        self.events[pygame.K_v] = lambda: drawing.vsync()
-        self.events[pygame.K_c] = lambda: (self.moveto((0.0, 0.0)), self.breaks(True, True))
-        self.events[pygame.K_x] = lambda: (self.zoomto(0.0, False), self.turnto(0.0), self.breaks(True, True), self._clamp())
-        self.events[pygame.K_z] = lambda: self.center(pygame.mouse.get_pos(), +1)
+        self.method['_vsync'] = lambda: drawing.vsync()
+        self.method['center'] = lambda: (self.moveto((0.0, 0.0)), self.breaks(True, True))
+        self.method['noturn'] = lambda: (self.turnto(0.0), self.breaks(True, True))
+        self.method['nozoom'] = lambda: (self.zoomto(0.0, False), self.breaks(True, True))
 
-    def handled(self, key):
-        if key in self.events:
-            apply(self.events[key])
-        else:
-            return key
+        self.method['turn_f'] = lambda: self.turnon(-1)
+        self.method['turn_b'] = lambda: self.turnon(+1)
+        self.method['zoom_o'] = lambda: self.zoomon(-1, False)
+        self.method['zoom_i'] = lambda: self.zoomon(+1, False)
+        self.method['move_l'] = lambda: self.moveon((-16, 0))
+        self.method['move_r'] = lambda: self.moveon((+16, 0))
+        self.method['move_u'] = lambda: self.moveon((0, -16))
+        self.method['move_d'] = lambda: self.moveon((0, +16))
+
+        self.method['zoomon'] = lambda chzm: self.zoomon(chzm)
+        self.method['zoomto'] = lambda zoom: self.zoomto(zoom)
+        self.method['moveon'] = lambda dx, dy: self.moveon((dx, dy))
+        self.method['moveto'] = lambda dx, dy: self.moveto((dx, dy))
+        self.method['turnon'] = lambda turn: self.turnon(turn)
+        self.method['turnto'] = lambda turn: self.turnto(turn)
+
+    def handled(self):
+        return self.method
 
     def normal(self):
         cx, cy = self.rect()
