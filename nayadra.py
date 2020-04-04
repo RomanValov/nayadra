@@ -22,6 +22,27 @@ def makepath(path, create=False):
 
     return path
 
+handled = {
+    (pygame.KEYDOWN, pygame.K_DELETE): 'shrink',
+    (pygame.KEYDOWN, pygame.K_INSERT): 'expand',
+    (pygame.KEYDOWN, pygame.K_HOME): 'turn_f',
+    (pygame.KEYDOWN, pygame.K_END): 'turn_b',
+    (pygame.KEYDOWN, pygame.K_PAGEDOWN): 'zoom_o',
+    (pygame.KEYDOWN, pygame.K_PAGEUP): 'zoom_i',
+    (pygame.KEYDOWN, pygame.K_LEFT): 'move_l',
+    (pygame.KEYDOWN, pygame.K_RIGHT): 'move_r',
+    (pygame.KEYDOWN, pygame.K_UP): 'move_u',
+    (pygame.KEYDOWN, pygame.K_DOWN): 'move_d',
+
+    (pygame.KEYDOWN, pygame.K_a): '_round',
+    (pygame.KEYDOWN, pygame.K_d): '_clamp',
+
+    (pygame.KEYDOWN, pygame.K_v): '_vsync',
+    (pygame.KEYDOWN, pygame.K_c): 'center',
+    (pygame.KEYDOWN, pygame.K_x): 'noturn',
+    (pygame.KEYDOWN, pygame.K_z): 'nozoom',
+}
+
 def main():
     # initui
     pygame.init()
@@ -37,15 +58,13 @@ def main():
     # shell functions
     methods = {}
 
-    methods['action'] = lambda draw=None: engine.handled(pygame.K_1)
-    methods['marker'] = lambda mark=None: engine.handled(pygame.K_2)
-    methods['eraser'] = lambda mark=None: engine.handled(pygame.K_3)
+    methods['mark_1'] = lambda draw=None: engine.handled(pygame.K_1)
+    methods['mark_2'] = lambda mark=None: engine.handled(pygame.K_2)
+    methods['mark_3'] = lambda mark=None: engine.handled(pygame.K_3)
     methods['drop']   = lambda: engine.handled(pygame.K_7)
 
-    methods['shrink'] = lambda: cursor.resize(-1)
-    methods['expand'] = lambda: cursor.resize(+1)
-
-    methods.update(board.handled())
+    methods.update(cursor.events)
+    methods.update(board.events)
 
     status = widgets.Status(screen, config.RUNFOR)
     console = widgets.Console(screen, engine.banner, **methods)
@@ -65,28 +84,6 @@ def main():
 
     # component keys
     SKIPPED_KEYS = [ pygame.K_ESCAPE, pygame.K_MENU, pygame.K_RETURN ]
-
-    handled = dict()
-
-    # graphic keys
-    handled[pygame.KEYDOWN, pygame.K_DELETE] = 'shrink'
-    handled[pygame.KEYDOWN, pygame.K_INSERT] = 'expand'
-    handled[pygame.KEYDOWN, pygame.K_HOME] = 'turn_f'
-    handled[pygame.KEYDOWN, pygame.K_END] = 'turn_b'
-    handled[pygame.KEYDOWN, pygame.K_PAGEDOWN] = 'zoom_o'
-    handled[pygame.KEYDOWN, pygame.K_PAGEUP] = 'zoom_i'
-    handled[pygame.KEYDOWN, pygame.K_LEFT] = 'move_l'
-    handled[pygame.KEYDOWN, pygame.K_RIGHT] = 'move_r'
-    handled[pygame.KEYDOWN, pygame.K_UP] = 'move_u'
-    handled[pygame.KEYDOWN, pygame.K_DOWN] = 'move_d'
-
-    handled[pygame.KEYDOWN, pygame.K_a] = '_round'
-    handled[pygame.KEYDOWN, pygame.K_d] = '_clamp'
-
-    handled[pygame.KEYDOWN, pygame.K_v] = '_vsync'
-    handled[pygame.KEYDOWN, pygame.K_c] = 'center'
-    handled[pygame.KEYDOWN, pygame.K_x] = 'noturn'
-    handled[pygame.KEYDOWN, pygame.K_z] = 'nozoom'
 
     wx, wy = 0.0, 0.0
 
@@ -149,9 +146,6 @@ def main():
                 pass
             elif event.type == pygame.KEYUP and engine.handled(event.key) == None:
                 pass
-
-            elif event.type == pygame.KEYDOWN and (event.type, event.key) in handled:
-                apply(handled[event.type, event.key])
 
             # mouse events
             elif event.type == pygame.MOUSEBUTTONDOWN:

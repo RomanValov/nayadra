@@ -91,39 +91,36 @@ class UIBoard(UIElement):
         for mark in self.cmarks:
             self.insert('center', mark)
 
-        self.method = {}
-
         def sround(): self.round = not self.round
         def sclamp():
             self.clamp = not self.clamp
             if self.clamp: self._clamp()
 
-        self.method['_round'] = sround
-        self.method['_clamp'] = sclamp
+        self.events = {
+            '_round': sround,
+            '_clamp': sclamp,
 
-        self.method['_vsync'] = lambda: drawing.vsync()
-        self.method['center'] = lambda: (self.moveto((0.0, 0.0)), self.breaks(True, True))
-        self.method['noturn'] = lambda: (self.turnto(0.0), self.breaks(True, True))
-        self.method['nozoom'] = lambda: (self.zoomto(0.0, False), self.breaks(True, True))
+            '_vsync': lambda: drawing.vsync(),
+            'center': lambda: (self.moveto((0.0, 0.0)), self.breaks(True, True)),
+            'noturn': lambda: (self.turnto(0.0), self.breaks(True, True)),
+            'nozoom': lambda: (self.zoomto(0.0, False), self.breaks(True, True)),
 
-        self.method['turn_f'] = lambda: self.turnon(-1)
-        self.method['turn_b'] = lambda: self.turnon(+1)
-        self.method['zoom_o'] = lambda: self.zoomon(-1, False)
-        self.method['zoom_i'] = lambda: self.zoomon(+1, False)
-        self.method['move_l'] = lambda: self.moveon((-16, 0))
-        self.method['move_r'] = lambda: self.moveon((+16, 0))
-        self.method['move_u'] = lambda: self.moveon((0, -16))
-        self.method['move_d'] = lambda: self.moveon((0, +16))
+            'turn_f': lambda: self.turnon(-1),
+            'turn_b': lambda: self.turnon(+1),
+            'zoom_o': lambda: self.zoomon(-1, False),
+            'zoom_i': lambda: self.zoomon(+1, False),
+            'move_l': lambda: self.moveon((-16, 0)),
+            'move_r': lambda: self.moveon((+16, 0)),
+            'move_u': lambda: self.moveon((0, -16)),
+            'move_d': lambda: self.moveon((0, +16)),
 
-        self.method['zoomon'] = lambda chzm: self.zoomon(chzm)
-        self.method['zoomto'] = lambda zoom: self.zoomto(zoom)
-        self.method['moveon'] = lambda dx, dy: self.moveon((dx, dy))
-        self.method['moveto'] = lambda dx, dy: self.moveto((dx, dy))
-        self.method['turnon'] = lambda turn: self.turnon(turn)
-        self.method['turnto'] = lambda turn: self.turnto(turn)
-
-    def handled(self):
-        return self.method
+            'zoomon': lambda chzm: self.zoomon(chzm),
+            'zoomto': lambda zoom: self.zoomto(zoom),
+            'moveon': lambda dx, dy: self.moveon((dx, dy)),
+            'moveto': lambda dx, dy: self.moveto((dx, dy)),
+            'turnon': lambda turn: self.turnon(turn),
+            'turnto': lambda turn: self.turnto(turn),
+        }
 
     def normal(self):
         cx, cy = self.rect()
@@ -308,6 +305,11 @@ class UICursor():
 
         self.action(False)
         self.frame()
+
+        self.events = {
+            'shrink': lambda: self.resize(-1),
+            'expand': lambda: self.resize(+1),
+        }
 
     def action(self, draws=None):
         if draws == None:
