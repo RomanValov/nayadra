@@ -68,6 +68,24 @@ handled = {
 
     (pygame.KEYUP, pygame.K_q): 'swmark',
     (pygame.KEYUP, pygame.K_w): 'swtime',
+
+    (pygame.MOUSEBUTTONDOWN, 1, 0): 'marker',
+    (pygame.MOUSEBUTTONUP, 1, 0): 'marker',
+
+    (pygame.MOUSEBUTTONUP, 4, 0): 'expand',
+    (pygame.MOUSEBUTTONUP, 5, 0): 'shrink',
+
+    (pygame.MOUSEBUTTONUP, 4, pygame.KMOD_LCTRL): 'zoom_i',
+    (pygame.MOUSEBUTTONUP, 4, pygame.KMOD_RCTRL): 'zoom_i',
+
+    (pygame.MOUSEBUTTONUP, 4, pygame.KMOD_LSHIFT): 'fill_m',
+    (pygame.MOUSEBUTTONUP, 4, pygame.KMOD_RSHIFT): 'fill_m',
+
+    (pygame.MOUSEBUTTONUP, 5, pygame.KMOD_LCTRL): 'zoom_o',
+    (pygame.MOUSEBUTTONUP, 5, pygame.KMOD_RCTRL): 'zoom_o',
+
+    (pygame.MOUSEBUTTONUP, 5, pygame.KMOD_LSHIFT): 'fill_l',
+    (pygame.MOUSEBUTTONUP, 5, pygame.KMOD_RSHIFT): 'fill_l',
 }
 
 def main():
@@ -116,8 +134,10 @@ def main():
     while running:
         for event in pygame.event.get():
             mx, my = pygame.mouse.get_pos()
+            dx, dy = (wx - mx, wy - my)
             bpress = pygame.mouse.get_pressed()
             bevent = event.dict.get('button', 0) - 1
+            keymod = pygame.key.get_mods()
 
             with_middle = bevent == 1
             with_right = bevent == 2
@@ -175,34 +195,23 @@ def main():
                 method = handled[event.type, event.key]
                 apply(methods[method])
 
+            elif event.type == pygame.MOUSEBUTTONUP and (event.type, event.button, keymod) in handled:
+                method = handled[event.type, event.button, keymod]
+                apply(methods[method])
+            elif event.type == pygame.MOUSEBUTTONDOWN and (event.type, event.button, keymod) in handled:
+                method = handled[event.type, event.button, keymod]
+                apply(methods[method])
+
             # mouse events
+            if True:
+                pass
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                if with_fore:
-                    if when_middle:
-                        apply(methods['fill_m'])
-                    if when_right:
-                        apply(methods['zoomon'], (-1,))
-                    elif when_left:
-                        apply(methods['pick_n'])
-                    else:
-                        apply(methods['shrink'])
-                    inproc = False
-                elif with_back:
-                    if when_middle:
-                        apply(methods['fill_l'])
-                    if when_right:
-                        apply(methods['zoomon'], (+1,))
-                    elif when_left:
-                        apply(methods['pick_p'])
-                    else:
-                        apply(methods['expand'])
-                    inproc = False
+                if None:
+                    pass
                 elif with_right:
-                    board.breaks(nomove=True)
+                    apply(methods['moveno'])
                 elif with_middle:
-                    board.breaks(noturn=True)
-                elif with_left:
-                    apply(methods['marker'])
+                    apply(methods['turnno'])
             elif event.type == pygame.MOUSEMOTION:
                 if pygame.mouse.get_rel() == (0, 0):
                     continue
@@ -211,14 +220,12 @@ def main():
                 elif (when_middle):
                     apply(methods['rotate'], ((wx, wy), (mx, my), True))
                 elif (when_right):
-                    apply(methods['moveon'], ((wx - mx, wy - my), True))
+                    apply(methods['moveon'], (dx, dy, True))
                 wx, wy = mx, my
             elif event.type == pygame.MOUSEBUTTONUP:
                 if with_middle:
                     if when_right:
                         apply(methods['center'], ((mx, my), +1))
-                elif with_left:
-                    apply(methods['marker'])
 
         # engine
         engine.impulse(board.totexcoords((mx, my)), cursor.radius)

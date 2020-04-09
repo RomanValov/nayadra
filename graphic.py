@@ -101,9 +101,12 @@ class UIBoard(UIElement):
             '_clamp': sclamp,
 
             '_vsync': lambda: drawing.vsync(),
-            'center': lambda: (self.moveto((0.0, 0.0)), self.breaks(True, True)),
-            'noturn': lambda: (self.turnto(0.0), self.breaks(True, True)),
-            'nozoom': lambda: (self.zoomto(0.0, False), self.breaks(True, True)),
+            'center': lambda: (self.moveto((0.0, 0.0)), self.breaks()),
+            'noturn': lambda: (self.turnto(0.0), self.breaks()),
+            'nozoom': lambda: (self.zoomto(0.0, False), self.breaks()),
+
+            'moveno': lambda: self.moveno(),
+            'turnno': lambda: self.turnno(),
 
             'turn_f': lambda: self.turnon(-1),
             'turn_b': lambda: self.turnon(+1),
@@ -263,17 +266,19 @@ class UIBoard(UIElement):
             else:
                 self.aangle = 0.0
 
-    def breaks(self, nomove=False, noturn=False):
-        actual = False
-        if nomove:
-            if abs(self.ax) > _INERT_THRESH or abs(self.ay) > _INERT_THRESH:
-                self.ax, self.ay = 0.0, 0.0
-                actual = True
-        if noturn:
-            if abs(self.aangle) > _INERT_THRESH:
-                self.aangle = 0.0
-                actual = True
-        return actual
+    def moveno(self):
+        actual = True
+        if abs(self.ax) > _INERT_THRESH or abs(self.ay) > _INERT_THRESH:
+            self.ax, self.ay = 0.0, 0.0
+            actual = True
+
+    def turnno(self):
+        if abs(self.aangle) > _INERT_THRESH:
+            self.aangle = 0.0
+            actual = True
+
+    def breaks(self):
+        return self.moveno() or self.turnno()
 
     def update(self, data):
         self.globj.update(data)
