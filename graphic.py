@@ -63,7 +63,7 @@ class UIScreen(UIElement):
         self.calc((x, y))
         super(UIScreen, self).__init__(drawing.Screen((x, y)))
 
-        self.font = drawing.Font(pygame.font.Font(pygame.font.match_font("consolas", bold=True), 21))
+        self.font = drawing.Font(pygame.font.Font(pygame.font.match_font("consolas", bold=True), 26))
 
     def render(self):
         super(UIScreen, self).render()
@@ -107,8 +107,8 @@ class UIBoard(UIElement):
 
             'turn_f': lambda: self.turnon(-1),
             'turn_b': lambda: self.turnon(+1),
-            'zoom_o': lambda: self.zoomon(-1, False),
-            'zoom_i': lambda: self.zoomon(+1, False),
+            'zoom_o': lambda: self.zoomon(-1, True),
+            'zoom_i': lambda: self.zoomon(+1, True),
             'move_l': lambda: self.moveon((-16, 0)),
             'move_r': lambda: self.moveon((+16, 0)),
             'move_u': lambda: self.moveon((0, -16)),
@@ -311,6 +311,7 @@ class UICursor():
         self.events = {
             'shrink': lambda: self.resize(-1),
             'expand': lambda: self.resize(+1),
+            'resize': self.resize
         }
 
     def action(self, draws=None):

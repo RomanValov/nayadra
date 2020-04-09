@@ -11,7 +11,7 @@ VERSION = " 0.0.4.5.20120101 "
 VENGINE = ""
 
 BORDERX = 8
-BORDERY = 4
+BORDERY = 8
 
 _UICONS_NONE = 0
 _UICONS_LINE = 1
@@ -38,7 +38,7 @@ class Console(object):
         self.curbox = graphic.UIElement(drawing.Widget((self.symsize[0], 4), colors=(pygame.Color(0x00, 0xFF, 0x00, 0xC0), None)))
         self.cursor = False
 
-        self.nlines = self._dosym((self.symsize[0] * _UI_SYMBOLS + 2 * BORDERX, self.root.rect()[1] - self.font.rect()[1] - 2 * BORDERY))[1]
+        self.nlines = self._dosym((self.symsize[0] * _UI_SYMBOLS + 2 * BORDERX, self.root.rect()[1] - self.font.rect()[1] - 2 * BORDERY - 16.0))[1]
         self.oprint = graphic.UIElement(self.font.text(_UI_SYMBOLS * self.nlines))
         self.iprint = graphic.UIElement(self.font.text(_UI_SYMBOLS * self.nlines))
 
@@ -68,19 +68,19 @@ class Console(object):
         rect = (self.symsize[0] * _UI_SYMBOLS + 2 * BORDERX, self.symsize[1] + 2 * BORDERY)
         self.symbols = self._dosym(rect)
         self.canvas.globj.rect(rect)
-        self.root.insert('console', self.canvas, (self.root.rect()[0] - rect[0]) / 2.0, 0.0)
+        self.root.insert('console', self.canvas, (self.root.rect()[0] - rect[0]) / 2.0, 0.0 + 4.0)
 
     def _cfull(self):
-        rect = (self.symsize[0] * _UI_SYMBOLS + 2 * BORDERX, self.root.rect()[1] - self.font.rect()[1] - 2 * BORDERY)
+        rect = (self.symsize[0] * _UI_SYMBOLS + 2 * BORDERX, self.root.rect()[1] - self.font.rect()[1] - 2 * BORDERY - 16.0)
         self.symbols = self._dosym(rect)
         self.canvas.globj.rect(rect)
-        self.root.insert('console', self.canvas, (self.root.rect()[0] - rect[0]) / 2.0, 0.0)
+        self.root.insert('console', self.canvas, (self.root.rect()[0] - rect[0]) / 2.0, 0.0 + 4.0)
 
     def _cfree(self):
         rect = (self.root.rect()[0] * 0.75, self.root.rect()[1] * 0.75)
         self.symbols = self._dosym(rect)
         self.canvas.globj.rect(rect)
-        self.root.insert('console', self.canvas, (self.root.rect()[0] - rect[0]) / 2.0, (self.root.rect()[1] - rect[1]) / 2.0)
+        self.root.insert('console', self.canvas, (self.root.rect()[0] - rect[0]) / 2.0, (self.root.rect()[1] - rect[1]) / 2.0 + 4.0)
 
     def _cmode(self, shown=None):
         self.shown = shown and shown or _UICONS_NONE
@@ -280,7 +280,7 @@ class Status(object):
         strect = self.canvas.rect()
         uirect = self.font.size(' ' * _UI_SYMBOLS)
 
-        self.root.insert('status', self.canvas, (self.root.rect()[0] - self.canvas.rect()[0]) / 2, self.root.rect()[1] - self.canvas.rect()[1])
+        self.root.insert('status', self.canvas, (self.root.rect()[0] - self.canvas.rect()[0]) / 2, self.root.rect()[1] - self.canvas.rect()[1] - 4)
         self.canvas.insert('sttext', self.sttext, strect[0] - uirect[0] - BORDERX, strect[1] - uirect[1] - BORDERY + 2)
 
         self.runfor = runfor

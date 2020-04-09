@@ -13,4 +13,4 @@ CURSOR = 64
 
 DATA = 'data'
 
-SWITCH = 0
+SWITCH = 12
