@@ -370,7 +370,7 @@ class Font:
 
         for code in xrange(0x80):
             char = (code and chr(code) and code != 0x0D) and chr(code) or ' '
-            surf = self.font.render(char, True, pygame.Color(0x40, 0xE0, 0x80, 0xC0))
+            surf = self.font.render(char, True, pygame.Color(0x30, 0xC0, 0x60, 0x90))
             self.syms.surface.blit(surf, (self.symr[0] * code, 0.0))
 
         self.syms.copy()

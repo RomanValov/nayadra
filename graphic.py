@@ -120,6 +120,7 @@ class UIBoard(UIElement):
             'zoomon': lambda chzm: self.zoomon(chzm),
             'zoomto': lambda zoom: self.zoomto(zoom),
             'moveon': lambda *args: self.moveon(*args),
+            'moveof': lambda *args: self.moveof(*args),
             'moveto': lambda *args: self.moveto(*args),
             'turnon': lambda turn: self.turnon(turn),
             'turnto': lambda turn: self.turnto(turn),
@@ -216,6 +217,11 @@ class UIBoard(UIElement):
             self.ay += _INERT_HOLDON * dy
 
         return self.normal()
+
+    def moveof(self, was, now, inerts=False):
+        wx, wy = was
+        nx, ny = now
+        return self.moveon((wx - nx, wy - ny), inerts=inerts)
 
     def moveto(self, (dx, dy)):
         self.dx, self.dy = float(-dx), float(-dy)
