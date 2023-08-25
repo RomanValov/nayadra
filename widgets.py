@@ -137,7 +137,7 @@ class Console(object):
         self.ofresh = True
 
     def write(self, string):
-        print >> self.orig_stdout, string,
+        print(string, file=self.orig_stdout, end="")
 
         lines = (self.buffer + string).split('\n')
         self.buffer = lines.pop()
@@ -228,7 +228,7 @@ class Console(object):
                 self.blanks = 0
 
             if self.blanks <= 1 :
-                print "%s %s" % (self.prompt, self.history[self.histpos])
+                print("%s %s" % (self.prompt, self.history[self.histpos]))
             else:
                 self.onoff(state=_UICONS_NONE)
                 self.blanks = 0

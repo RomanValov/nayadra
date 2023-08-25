@@ -36,7 +36,8 @@ class UIElement(object):
 class UIScreen(UIElement):
     surf_flags = pygame.DOUBLEBUF | pygame.OPENGL
 
-    def make(self, (x, y)):
+    def make(self, x_y):
+        x, y = x_y
         flags = UIScreen.surf_flags
         if not x or not y:
             flags |= pygame.FULLSCREEN
@@ -47,7 +48,8 @@ class UIScreen(UIElement):
 
         return x, y
 
-    def calc(self, (x, y)):
+    def calc(self, x_y):
+        x, y = x_y
         self.XLEN = float(x)
         self.YLEN = float(y)
         self._XLO = 0.0
@@ -58,7 +60,8 @@ class UIScreen(UIElement):
         self.YC   = (self._YLO + self._YHI) / 2.0
         self.DIAG = math.hypot(self.XC, self.YC)
 
-    def __init__(self, (x, y)):
+    def __init__(self, x_y):
+        x, y = x_y
         x, y = self.make((x, y))
         self.calc((x, y))
         super(UIScreen, self).__init__(drawing.Screen((x, y)))
@@ -136,7 +139,8 @@ class UIBoard(UIElement):
 
     def _clamp(self, negate=False):
         def normalize(c, n): return ((c + n/2) % n) - n/2
-        def rotation((x,y), angle):
+        def rotation(x_y, angle):
+            x, y = x_y
             cos, sin = math.cos(angle), math.sin(angle)
             return (x * cos - y * sin, x * sin + y * cos)
 
@@ -149,13 +153,15 @@ class UIBoard(UIElement):
 
         self.dx, self.dy = normalize(self.dx, cx), normalize(self.dy, cy)
 
-    def totexhelper(self, (rx, ry), center=False):
+    def totexhelper(self, rx_ry, center=False):
+        rx, ry = rx_ry
         ax, ay = rx - self.root.XC, ry - self.root.YC
         rx = ax * math.cos(self.angle) - ay * math.sin(self.angle)
         ry = ax * math.sin(self.angle) + ay * math.cos(self.angle)
         return (rx, ry)
 
-    def totexcoords(self, (rx, ry), forgl=False, forui=False):
+    def totexcoords(self, rx_ry, forgl=False, forui=False):
+        rx, ry = rx_ry
         # angle
         tx, ty = self.totexhelper((rx, ry))
 
@@ -198,14 +204,16 @@ class UIBoard(UIElement):
     def zoomto(self, zoom, cursor=True):
         return self.rscale((2.0 ** zoom) / self.scale[False], cursor)
 
-    def center(self, (rx, ry), zoom=0):
+    def center(self, rx_ry, zoom=0):
+        rx, ry = rx_ry
         ax, ay = self.totexhelper((rx, ry))
         self.dx -= ax
         self.dy -= ay
 
         self.zoomon(zoom, False)
 
-    def moveon(self, (dx, dy), inerts=False):
+    def moveon(self, dx_dy, inerts=False):
+        dx, dy = dx_dy
         ax = dx * math.cos(self.angle) - dy * math.sin(self.angle)
         ay = dx * math.sin(self.angle) + dy * math.cos(self.angle)
 
@@ -223,7 +231,8 @@ class UIBoard(UIElement):
         nx, ny = now
         return self.moveon((wx - nx, wy - ny), inerts=inerts)
 
-    def moveto(self, (dx, dy)):
+    def moveto(self, dx_dy):
+        dx, dy = dx_dy
         self.dx, self.dy = float(-dx), float(-dy)
         return self.normal()
 

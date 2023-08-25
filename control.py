@@ -2,7 +2,8 @@ import drawing
 import compute
 
 class Control:
-    def __init__(self, (xtsz, ytsz), datapath):
+    def __init__(self, xtsz_ytsz, datapath):
+        xtsz, ytsz = xtsz_ytsz
         self.bounds = (xtsz, ytsz)
         self.length = xtsz * ytsz * 4
         self.glbufs = drawing.pixel_buffer(self.length)

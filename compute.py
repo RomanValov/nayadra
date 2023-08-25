@@ -26,7 +26,7 @@ def get_gl_sharing_context_properties():
     if sys.platform == "linux2":
         from OpenGL import GLX
 
-        props.append((ctx_props.GL_CONTEXT_KHR, gl_platform.GetCurrentContext()))
+        props.append((ctx_props.GL_CONTEXT_KHR, GLX.glXGetCurrentContext()))
         props.append((ctx_props.GLX_DISPLAY_KHR, GLX.glXGetCurrentDisplay()))
     elif sys.platform == "win32":
         from OpenGL import WGL
@@ -155,7 +155,8 @@ _ENGINE_MOVED = 5
 _ENGINE_TOTAL = 10
 
 class ComputeUnit:
-    def __init__(self, (xtsz, ytsz), datapath, shared, isgl=True):
+    def __init__(self, xtsz_ytsz, datapath, shared, isgl=True):
+        xtsz, ytsz = xtsz_ytsz
         self.ctx = isgl and create_gl_context() or create_some_context()
 
         self.q = cl.CommandQueue(self.ctx)
